@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1700.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RebelCmsConsoleApplication", "RebelCmsConsoleApplication\RebelCmsConsoleApplication.csproj", "{8BEA3752-867A-4B39-8DD8-F121DDB0D5E5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BEA3752-867A-4B39-8DD8-F121DDB0D5E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BEA3752-867A-4B39-8DD8-F121DDB0D5E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BEA3752-867A-4B39-8DD8-F121DDB0D5E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BEA3752-867A-4B39-8DD8-F121DDB0D5E5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B2FDCF15-60D9-4463-B363-8CF13B573993}
+	EndGlobalSection
+EndGlobal
