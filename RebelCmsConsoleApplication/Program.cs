@@ -5,7 +5,7 @@ using RebelCmsConsoleApplication.RebelCmsGenerator;
 
 Console.WriteLine("Please try using dotnet run module tablename ");
 string appsDll = Environment.GetCommandLineArgs()[0];
-string module = Environment.GetCommandLineArgs()[1];
+string module = CodeGenerator.UpperCaseFirst(Environment.GetCommandLineArgs()[1]);
 string tableName = Environment.GetCommandLineArgs()[2];
 Console.WriteLine("You choose this app run  : " + appsDll);
 Console.WriteLine("You choose this module  : " + module);
@@ -14,6 +14,9 @@ Console.WriteLine("You choose this table  : " + tableName);
 var connectionString = ConfigurationManager.ConnectionStrings["ApplicationServices"].ConnectionString;
 
 CodeGenerator codeGenerator = new(connectionString);
+// mariadb utf3 error even thou we don't have utf3 only utf8
+codeGenerator.SetByPassMariaDbError();
+
 // since we don't have wpf in macos / linux. We create the file . Sorry no choosing ya like wpf
 string repository = codeGenerator.GenerateController(tableName, module);
 string model = codeGenerator.GenerateController(tableName, module);
@@ -21,10 +24,10 @@ string pages = codeGenerator.GenerateController(tableName, module);
 
 
 var path = "/Users/user/Projects/code/";
-var fileNameController = CodeGenerator.GetStringNoUnderScore(tableName,0) + "Controller.cs";
-var fileNameModel = CodeGenerator.GetStringNoUnderScore(tableName, 0) + "Model.cs";
-var fileNameRepository = CodeGenerator.GetStringNoUnderScore(tableName, 0) + "Repository.cs";
-var fileNamePages = CodeGenerator.GetStringNoUnderScore(tableName, 0) + ".cshtml";
+var fileNameController = CodeGenerator.GetStringNoUnderScore(tableName,1) + "Controller.cs";
+var fileNameModel = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Model.cs";
+var fileNameRepository = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Repository.cs";
+var fileNamePages = CodeGenerator.GetStringNoUnderScore(tableName, 1) + ".cshtml";
 try
 {
     if (File.Exists(fileNameController))    

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 namespace RebelCmsConsoleApplication
 {
     using MySql.Data.MySqlClient;
@@ -15,7 +15,7 @@ namespace RebelCmsConsoleApplication
         {
             private const string DEFAULT_DATABASE = "rebelcms";
             private readonly string connection;
-            enum TextCase
+            public enum TextCase
             {
                 LcWords,
                 UcWords
@@ -79,6 +79,22 @@ namespace RebelCmsConsoleApplication
                      "M/d/yyyy hh:mm tt", "M/d/yyyy hh tt",
                      "M/d/yyyy h:mm", "M/d/yyyy h:mm",
                      "MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm"};
+            }
+            public void SetByPassMariaDbError()
+            {
+
+                using MySqlConnection connection = GetConnection();
+                connection.Open();
+                try
+                {
+                    var command = new MySqlCommand("SET character_set_results=utf8", connection);
+                    command.ExecuteNonQuery();
+                    command.Dispose();
+                }catch(Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+             
             }
             public List<string> GetTableList()
             {
@@ -351,7 +367,7 @@ namespace RebelCmsConsoleApplication
                                 template.AppendLine($"\tDateTime {Field} = DateTime.MinValue;");
                                 template.AppendLine($"\tif (!string.IsNullOrEmpty(Request.Form[\"{Field}\"]))");
                                 template.AppendLine("\t{");
-                                template.AppendLine("\tvar test = Request.Form[\"{Field}\"].ToString().Split(\"T\");");
+                                template.AppendLine($"\tvar test = Request.Form[\"{Field}\"].ToString().Split(\"T\");");
                                 template.AppendLine("\tvar dateString = test[0].Split(\"-\");");
                                 template.AppendLine("\tvar timeString = test[1].Split(\":\");");
 
@@ -362,7 +378,7 @@ namespace RebelCmsConsoleApplication
                                 template.AppendLine("\tvar hour = Convert.ToInt32(timeString[0].ToString());");
                                 template.AppendLine("\tvar minute = Convert.ToInt32(timeString[1].ToString());");
 
-                                template.AppendLine("\tsampleDateTime = new(year, month, day, hour, minute, 0);");
+                                template.AppendLine($"\t{Field} = new(year, month, day, hour, minute, 0);");
                                 template.AppendLine("\t}");
                             }
                             else if (Type.ToString().Contains("date"))
@@ -370,8 +386,8 @@ namespace RebelCmsConsoleApplication
                                 template.AppendLine($"\tDateOnly {Field} = DateOnly.FromDateTime(DateTime.Now);");
                                 template.AppendLine($"\tif (!string.IsNullOrEmpty(Request.Form[\"{Field}\"]))");
                                 template.AppendLine("\t{");
-                                template.AppendLine($"\tvar dateString = Request.Form[{Field}].ToString().Split(\"-\");");
-                                template.AppendLine("\tsampleDate = new DateOnly(Convert.ToInt32(dateString[0]), Convert.ToInt32(dateString[1]), Convert.ToInt32(dateString[2]));");
+                                template.AppendLine($"\tvar dateString = Request.Form[\"{Field}\"].ToString().Split(\"-\");");
+                                template.AppendLine($"\t{Field} = new DateOnly(Convert.ToInt32(dateString[0]), Convert.ToInt32(dateString[1]), Convert.ToInt32(dateString[2]));");
                                 template.AppendLine("\t}");
                             }
                             else if (Type.ToString().Contains("time"))
@@ -380,7 +396,7 @@ namespace RebelCmsConsoleApplication
                                 template.AppendLine($"\tif (!string.IsNullOrEmpty(Request.Form[\"{Field}\"]))");
                                 template.AppendLine("\t{");
                                 template.AppendLine($"\tvar timeString = Request.Form[\"{Field}\"].ToString().Split(\":\");");
-                                template.AppendLine("\tsampleTime = new(Convert.ToInt32(timeString[0].ToString()), Convert.ToInt32(timeString[1].ToString()));");
+                                template.AppendLine($"\t{Field} = new(Convert.ToInt32(timeString[0].ToString()), Convert.ToInt32(timeString[1].ToString()));");
                                 template.AppendLine("\t}");
                             }
                             else if (Type.ToString().Contains("year"))
@@ -928,7 +944,7 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("                                    <td>");
                                 template.AppendLine("                                        <label>");
-                                template.AppendLine($"                                            <input type=\"time\" name=\"{Field}\" id=\"{Field}-@row.{ucTableName}Key\" value=\"@row.{UpperCaseFirst(Field)}.ToString(\"yyyy-MM-dd\")\" class=\"form-control\" />");
+                                template.AppendLine($"                                            <input type=\"time\" name=\"{Field}\" id=\"{Field}-@row.{ucTableName}Key\" value=\"@row.{UpperCaseFirst(Field)}.ToString(\"HH:mm:ss\")\" class=\"form-control\" />");
                                 template.AppendLine("                                        </label>");
                                 template.AppendLine("                                    </td>");
                             }
@@ -936,7 +952,7 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("                                    <td>");
                                 template.AppendLine("                                        <label>");
-                                template.AppendLine($"                                            <input type=\"number\" min=\"1900\" max=\"2099\" step=\"1\" name=\"{Field}\" id=\"{Field}-@row.{ucTableName}Key\" value=\"@row.{UpperCaseFirst(Field)}.ToString(\"yyyy-MM-dd\")\" class=\"form-control\" />");
+                                template.AppendLine($"                                            <input type=\"number\" min=\"1900\" max=\"2099\" step=\"1\" name=\"{Field}\" id=\"{Field}-@row.{ucTableName}Key\" value=\"@row.{UpperCaseFirst(Field)}.ToString(\"yyyy\")\" class=\"form-control\" />");
                                 template.AppendLine("                                        </label>");
                                 template.AppendLine("                                    </td>");
                             }
@@ -1806,7 +1822,7 @@ namespace RebelCmsConsoleApplication
                                 loopColumn.AppendLine("                    new ()");
                                 loopColumn.AppendLine("                    {");
                                 loopColumn.AppendLine("                        Key = \"@" + Field + "\",");
-                                loopColumn.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"HH::mm\")");
+                                loopColumn.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"HH:mm\")");
                                 loopColumn.AppendLine("                    },");
                             }
                             else
@@ -2327,7 +2343,7 @@ namespace RebelCmsConsoleApplication
 
                 return template.ToString(); ;
             }
-            private string? GetPrimayKeyTableName(string tableName, string field)
+            public string? GetPrimayKeyTableName(string tableName, string field)
             {
 
 
@@ -2355,7 +2371,7 @@ namespace RebelCmsConsoleApplication
                 }
                 return referencedTableName;
             }
-            private string? GetForeignKeyTableName(string tableName, string field)
+            public string? GetForeignKeyTableName(string tableName, string field)
             {
 
 
@@ -2382,7 +2398,7 @@ namespace RebelCmsConsoleApplication
                 return referencedTableName;
             }
 
-            private static string UpperCaseFirst(string s)
+            public static string UpperCaseFirst(string s)
             {
                 // Check for empty string.
                 if (string.IsNullOrEmpty(s))
@@ -2392,7 +2408,7 @@ namespace RebelCmsConsoleApplication
                 // Return char and concat substring.
                 return char.ToUpper(s[0]) + s[1..];
             }
-            private static string LowerCaseFirst(string s)
+            public static string LowerCaseFirst(string s)
             {
                 // Check for empty string.
                 if (string.IsNullOrEmpty(s))
@@ -2402,7 +2418,7 @@ namespace RebelCmsConsoleApplication
                 // Return char and concat substring.
                 return char.ToLower(s[0]) + s[1..];
             }
-            private static string SplitToUnderScore(string s)
+            public static string SplitToUnderScore(string s)
             {
                 var r = new Regex(@"
                 (?<=[A-Z])(?=[A-Z][a-z]) |
