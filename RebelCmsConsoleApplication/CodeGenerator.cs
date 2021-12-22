@@ -853,7 +853,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                            <tbody id=\"tableBody\">");
                 template.AppendLine($"                                @foreach (var row in {lcTableName}Models)");
                 template.AppendLine("                                {");
-                template.AppendLine($"                                    <tr id='role-@row.{ucTableName}Key'>");
+                template.AppendLine($"                                    <tr id='{lcTableName}-@row.{ucTableName}Key'>");
                 /// loop here 
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
@@ -1219,7 +1219,6 @@ namespace RebelCmsConsoleApplication
                         }
                     }
                 }
-                template.AppendLine("         const roleName = $(\"#roleName\");");
                 // loop here
                 template.AppendLine("         $.ajax({");
                 template.AppendLine("          type: 'POST',");
@@ -1341,7 +1340,6 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("         });");
                 template.AppendLine("        }");
                 template.AppendLine("        function readRecord() {");
-                template.AppendLine("         let row = { roleKey: \"\", folderName: \"\" }");
                 template.AppendLine("         $.ajax({");
                 template.AppendLine("          type: \"post\",");
                 template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
@@ -1431,7 +1429,6 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("          });");
                 template.AppendLine("        }");
                 template.AppendLine("        function searchRecord() {");
-                template.AppendLine("         let row = { roleKey: \"\", folderName: \"\" }");
                 template.AppendLine("         $.ajax({");
                 template.AppendLine("          type: \"post\",");
                 template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
@@ -2051,7 +2048,7 @@ namespace RebelCmsConsoleApplication
                         {
                             // we need to loop other table field name which might a bit difficult to check 
                             // in old time we limit to  fieldName+"Name|Description or we  stuck to unlimited search or we limit  the query into array and filter back again 
-                            // we can do detail checking reference table via checking sql below and reloop  but this is pure simple solution compare my 10 years old php .
+                            // we can do detail checking reference table via checking sql below and re-loop  but this is pure simple solution compare my 10 years old php .
                             /***
                             SELECT referenced_table_name
                             FROM information_schema.KEY_COLUMN_USAGE
@@ -2086,7 +2083,7 @@ namespace RebelCmsConsoleApplication
                         else
                         {
                             if (!Key.Equals("PRI"))
-                                templateSearch.Append("\n\t " + lcTableName + "." + Field + " like concat('%',@search,'%') OR");
+                                templateSearch.Append("\n\t " + tableName + "." + Field + " like concat('%',@search,'%') OR");
                         }
 
                     }
