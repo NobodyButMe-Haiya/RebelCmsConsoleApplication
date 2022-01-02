@@ -4,13 +4,54 @@ using System.Text;
 using RebelCmsConsoleApplication.RebelCmsGenerator;
 
 Console.WriteLine("Please try using dotnet run module tablename ");
+
+string module = string.Empty;
+string tableName = string.Empty;
+string detailTableName = string.Empty;
+
+var count = Environment.GetCommandLineArgs().Length;
+
 string appsDll = Environment.GetCommandLineArgs()[0];
-string module = CodeGenerator.UpperCaseFirst(Environment.GetCommandLineArgs()[1]);
-string tableName = Environment.GetCommandLineArgs()[2];
-string detailTableName = Environment.GetCommandLineArgs()[3];
-Console.WriteLine("You choose this app run  : " + appsDll);
-Console.WriteLine("You choose this module  : " + module);
-Console.WriteLine("You choose this table  : " + tableName);
+
+
+Console.WriteLine("Total arguments : [" + count + "]");
+int counter = 0;
+foreach(var x in Environment.GetCommandLineArgs())
+{
+    switch (counter)
+    {
+        case 1:
+            module = CodeGenerator.UpperCaseFirst(Environment.GetCommandLineArgs()[1]);
+            break;
+        case 2:
+            tableName = Environment.GetCommandLineArgs()[2];
+
+            break;
+
+        case 3:
+            detailTableName = Environment.GetCommandLineArgs()[3];
+
+            break;
+
+    }
+    counter++;
+}
+if (count == 2)
+{
+    Console.WriteLine("Put one table name at least");
+}
+if (!string.IsNullOrEmpty(appsDll))
+{
+    Console.WriteLine("You choose this app run  : " + appsDll);
+}
+if (string.IsNullOrEmpty(module))
+{
+    Console.WriteLine("You choose this module  : " + module);
+}
+if (!string.IsNullOrEmpty(tableName))
+{
+    Console.WriteLine("You choose this table  : " + tableName);
+}
 // what happen if they want master detail ? So if existed the third we generated master and detail and a bit complex
 // compare single page row in edit 
 
@@ -28,7 +69,7 @@ string pages = codeGenerator.GenerateController(tableName, module);
 
 
 var path = "/Users/user/Projects/code/";
-if (detailTableName == null)
+if (string.IsNullOrEmpty(detailTableName))
 {
     var fileNameController = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Controller.cs";
     var fileNameModel = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Model.cs";
@@ -101,7 +142,7 @@ else
         if (File.Exists(fileNameDetailController))
             File.Delete(fileNameDetailController);
 
-        using FileStream fileStreamDetailController = File.Create(path + "/" + fileNameMasterController);
+        using FileStream fileStreamDetailController = File.Create(path + "/" + fileNameDetailController);
         fileStreamDetailController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(detailTableName, module, tableName)));
 
 
