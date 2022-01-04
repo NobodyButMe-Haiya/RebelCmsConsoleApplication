@@ -497,6 +497,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("            var lastInsertKey = 0;");
                 template.AppendLine("            switch (mode)");
                 template.AppendLine("            {");
+                //create
                 template.AppendLine("                case \"create\":");
                 template.AppendLine("                    if (!checkAccessUtil.GetPermission(leafCheckKey, AuthenticationEnum.CREATE_ACCESS))");
                 template.AppendLine("                    {");
@@ -522,6 +523,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        }");
                 template.AppendLine("                    }");
                 template.AppendLine("                    break;");
+                //read
                 template.AppendLine("                case \"read\":");
                 template.AppendLine("                    if (!checkAccessUtil.GetPermission(leafCheckKey, AuthenticationEnum.READ_ACCESS))");
                 template.AppendLine("                    {");
@@ -541,6 +543,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        }");
                 template.AppendLine("                    }");
                 template.AppendLine("                    break;");
+                // search
                 template.AppendLine("                case \"search\":");
                 template.AppendLine("                    if (!checkAccessUtil.GetPermission(leafCheckKey, AuthenticationEnum.READ_ACCESS))");
                 template.AppendLine("                    {");
@@ -560,6 +563,34 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        }");
                 template.AppendLine("                    }");
                 template.AppendLine("                    break;");
+                
+                // single record 
+                template.AppendLine("                case \"single\":");
+                template.AppendLine("                    if (!checkAccessUtil.GetPermission(leafCheckKey, AuthenticationEnum.READ_ACCESS))");
+                template.AppendLine("                    {");
+                template.AppendLine("                        code = ((int)ReturnCodeEnum.ACCESS_DENIED).ToString();");
+                template.AppendLine("                    }");
+                template.AppendLine("                    else");
+                template.AppendLine("                    {");
+                template.AppendLine("                        try");
+                template.AppendLine("                        {");
+                template.AppendLine($"                            {ucTableName}Model {lcTableName}Model = new()");
+                // start loop
+                template.AppendLine("                            {");
+                template.AppendLine($"                                {ucTableName}Key = {lcTableName}Key");
+                template.AppendLine("                            };");
+                template.AppendLine($"                           data = {lcTableName}Repository.Single({lcTableName}Model);");
+                template.AppendLine("                            code = ((int)ReturnCodeEnum.READ_SUCCESS).ToString();");
+                template.AppendLine("                            status = true;");
+                template.AppendLine("                        }");
+                template.AppendLine("                        catch (Exception ex)");
+                template.AppendLine("                        {");
+                template.AppendLine("                            code = sharedUtil.GetRoleId() == (int)AccessEnum.ADMINISTRATOR_ACCESS ? ex.Message : ((int)ReturnCodeEnum.SYSTEM_ERROR).ToString();");
+                template.AppendLine("                        }");
+                template.AppendLine("                    }");
+                template.AppendLine("                    break;");
+                // future might single with detail  
+                // update
                 template.AppendLine("                case \"update\":");
                 template.AppendLine("                    if (!checkAccessUtil.GetPermission(leafCheckKey, AuthenticationEnum.UPDATE_ACCESS))");
                 template.AppendLine("                    {");
@@ -585,6 +616,8 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        }");
                 template.AppendLine("                    }");
                 template.AppendLine("                    break;");
+
+                // delete
                 template.AppendLine("                case \"delete\":");
                 template.AppendLine("                    if (!checkAccessUtil.GetPermission(leafCheckKey, AuthenticationEnum.DELETE_ACCESS))");
                 template.AppendLine("                    {");
@@ -1781,6 +1814,7 @@ namespace RebelCmsConsoleApplication
             }
             public string GeneratePagesFormAndGrid(string tableName, string module)
             {
+                int gridMax = 6;
                 StringBuilder template = new();
 
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
@@ -2050,13 +2084,10 @@ namespace RebelCmsConsoleApplication
                     }
                     if (d == 2)
                     {
-                      //  template.AppendLine("             </div>");
                         template.AppendLine("        </div>");
-                        // last line might not generated.generated for first loop only
-                        if (i != total)
+\                        if (i != total)
                         {
                             template.AppendLine("         <div class=\"row\">");
-                            //template.AppendLine("             <div class=\"col-md-12\">");
                         }
                         d = 0;
                     }
@@ -2123,7 +2154,7 @@ namespace RebelCmsConsoleApplication
                             template.AppendLine("                                    <th>" + SplitToSpaceLabel(Field.Replace(lcTableName, "").Replace("Id", "")) + "</th>");
                             i++;
                         }
-                        if(h == 6){
+                        if(h == gridMax){
                             break;
                         }
                         h++;
@@ -2204,7 +2235,7 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine($"                                    <td>@row.{UpperCaseFirst(Field)}</td>");
                         }
-                        if(j == 6){
+                        if(j == gridMax){
                             break;
                         }
                         j++;
@@ -2423,7 +2454,7 @@ namespace RebelCmsConsoleApplication
                         {
                            template.AppendLine("                                    \"<td>\"+" + LowerCaseFirst(Field) + "+\"</td>\" +");
                         }
-                        if(m==6){
+                        if(m==gridMax){
                             break;
                         }
                         m++;
@@ -2755,7 +2786,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("          async: false,");
                 template.AppendLine("          contentType: \"application/x-www-form-urlencoded\",");
                 template.AppendLine("          data: {");
-                template.AppendLine("           mode: \"search\",");
+                template.AppendLine("           mode: \"single\",");
                 template.AppendLine("           leafCheckKey: @navigationModel.LeafCheckKey,");
                 template.AppendLine("           " + lcTableName + "Key: $(\"#" + lcTableName + "Key\").val()");
                 template.AppendLine("          }, ");
@@ -2774,14 +2805,24 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("               $(\"#tableBody\").html(\"\").html(emptyTemplate());");
                 template.AppendLine("              } else {");
                 template.AppendLine("               if (data.data.length > 0) {");
-                template.AppendLine("                let templateStringBuilder = \"\";");
-                template.AppendLine("                for (let i = 0; i < data.data.length; i++) {");
-                template.AppendLine("                 row = data.data[i];");
-                // remember one line row 
+                // this assign value to field 
+                        foreach (var fieldName in fieldNameList)
+                {
+                    var name = string.Empty;
+                    if (fieldName != null)
+                        name = fieldName;
 
-                template.AppendLine("                 templateStringBuilder += template(" + templateField.ToString().TrimEnd(',') + ");");
-                template.AppendLine("                }");
-                template.AppendLine("                $(\"#tableBody\").html(\"\").html(templateStringBuilder);");
+
+                    if (name.Contains("Id"))
+                    {
+                        template.AppendLine("\t$(\"#" + name.Replace("Id","Key") + "\").val(data.data."+UpperCaseFirst(name)+");");
+                    }
+                    else
+                    {
+                        template.AppendLine("\t$(\"#" + name + "\").val(data.data."+UpperCaseFirst(name)+");");
+                    }
+
+                }
                 template.AppendLine("               }");
                 template.AppendLine("              }");
                 template.AppendLine("             } else if (status === false) {");
@@ -4950,6 +4991,7 @@ namespace RebelCmsConsoleApplication
 
                 template.AppendLine("            return " + lcTableName + "Models;");
                 template.AppendLine("        }");
+                // search method/function
                 template.AppendLine("        public List<" + ucTableName + "Model> Search(string search)");
                 template.AppendLine("       {");
                 template.AppendLine("            List<" + ucTableName + "Model> " + lcTableName + "Models = new();");
@@ -5144,6 +5186,154 @@ namespace RebelCmsConsoleApplication
 
                 template.AppendLine("            return " + lcTableName + "Models;");
                 template.AppendLine("        }");
+                // View One Recond aka findViewById 
+
+                template.AppendLine("        public " + ucTableName + "Model  GetSingle(" + ucTableName + "Model " + lcTableName + "Model)");
+                template.AppendLine("        {");
+                var primaryKey  = GetPrimayKeyTableName(tableName);
+                // we can used single  but the above parameter it is the same value . Yeah oop can be a double sword edges . 
+                // We can remove the line also 
+                template.AppendLine("            string sql = string.Empty;");
+                template.AppendLine("            List<ParameterModel> parameterModels = new ();");
+                template.AppendLine("            using MySqlConnection connection = SharedUtil.GetConnection();");
+                template.AppendLine("            try");
+                template.AppendLine("            {");
+                // the main problem is are we should filter em all or else ? 
+                template.AppendLine("                connection.Open();");
+                template.AppendLine("                sql += @\"");
+                template.AppendLine("                SELECT  *");
+                template.AppendLine("                FROM    " + tableName + " ");
+
+                foreach (DescribeTableModel describeTableModel in describeTableModels)
+                {
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
+                    {
+                        if (GetNumberDataType().Any(x => Type.Contains(x)))
+                        {
+                            if (Key.Equals("MUL"))
+                            {
+                                template.AppendLine("\t JOIN " + GetForeignKeyTableName(tableName, Field) + " ");
+                                template.AppendLine("\t USING(" + Field + ")");
+                            }
+                        }
+                    }
+                }
+                // how many table join is related ? 
+                template.AppendLine($"\t WHERE   {tableName}.isDelete != 1");
+                template.AppendLine("                WHERE   "+tableName+"." +primaryKey + "    =   @" + primaryKey + " LIMIT 1;\"");
+                template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
+                template.AppendLine("                parameterModels = new List<ParameterModel>");
+                template.AppendLine("                {");
+                template.AppendLine("                    new ()");
+                template.AppendLine("                    {");
+                template.AppendLine("                        Key = \"@" + primaryKey + "\",");
+                template.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(primaryKey.Replace("Id","Key")));
+                template.AppendLine("                   }");
+                template.AppendLine("                };");
+
+                template.AppendLine("                foreach (ParameterModel parameter in parameterModels)");
+                template.AppendLine("                {");
+                template.AppendLine("                    mySqlCommand.Parameters.AddWithValue(parameter.Key, parameter.Value);");
+                template.AppendLine("                }");
+                template.AppendLine("                _sharedUtil.SetSqlSession(sql, parameterModels); ");
+                template.AppendLine("                using (var reader = mySqlCommand.ExecuteReader())");
+                template.AppendLine("                {");
+                template.AppendLine("                    while (reader.Read())");
+                template.AppendLine("                   {");
+               
+
+
+                foreach (DescribeTableModel describeTableModel in describeTableModels)
+                {
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+
+                    if (GetNumberDataType().Any(x => Type.Contains(x)))
+                    {
+                        if (Key.Equals("PRI") || Key.Equals("MUL"))
+                        {
+                            template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]);");
+                        }
+                        else
+                        {
+                            template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]);");
+                        }
+                    }
+                    else if (Type.Contains("double") || Type.Contains("float"))
+                    {
+                        template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]);");
+                    }
+                    else if (Type.Contains("decimal"))
+                    {
+                        template.AppendLine(ucTableName + "Model." + = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]);");
+
+                    }
+                    else if (GetDateDataType().Any(x => Type.Contains(x)))
+                    {
+                        // year allready as int 
+                        if (Type.ToString().Contains("datetime"))
+                        {
+                            template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]);");
+                        }
+                        else if (Type.ToString().Contains("year"))
+                        {
+                            template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]);");
+                        }
+                        else if (Type.ToString().Contains("time"))
+                        {
+                            template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime((TimeSpan)reader[\"" + LowerCaseFirst(Field) + "\"]);");
+                        }
+                        else if (Type.ToString().Contains("date"))
+                        {
+                            template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]);");
+                        }
+
+                    }
+                    else if (GetBlobType().Any(x => Type.Contains(x)))
+                    {
+                        template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"];");
+                    }
+                    else
+                    {
+                        template.AppendLine(ucTableName + "Model." + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString();");
+                    }
+
+                }
+                template.AppendLine("});");
+            
+                template.AppendLine("                    }");
+                template.AppendLine("                }");
+                template.AppendLine("                mySqlCommand.Dispose();");
+                template.AppendLine("            }");
+                template.AppendLine("            catch (MySqlException ex)");
+                template.AppendLine("            {");
+                template.AppendLine("                System.Diagnostics.Debug.WriteLine(ex.Message);");
+                template.AppendLine("                _sharedUtil.SetQueryException(SharedUtil.GetSqlSessionValue(sql, parameterModels), ex);");
+                template.AppendLine("                throw new Exception(ex.Message);");
+                template.AppendLine("            }");
+
+                template.AppendLine("            return " + lcTableName + "Model;");
+                template.AppendLine("        }");
+                // excel method/function
                 template.AppendLine("        public byte[] GetExcel()");
                 template.AppendLine("        {");
                 template.AppendLine("            using var workbook = new XLWorkbook();");
@@ -5196,6 +5386,8 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("        }");
                 template.AppendLine("        public void Update(" + ucTableName + "Model " + lcTableName + "Model)");
                 template.AppendLine("        {");
+                var primaryKey  = GetPrimayKeyTableName(tableName);
+
                 template.AppendLine("            string sql = string.Empty;");
                 template.AppendLine("            List<ParameterModel> parameterModels = new ();");
                 template.AppendLine("            using MySqlConnection connection = SharedUtil.GetConnection();");
@@ -5225,7 +5417,7 @@ namespace RebelCmsConsoleApplication
                 }
                 template.AppendLine(updateString.ToString().TrimEnd(','));
                 // end loop
-                template.AppendLine("                WHERE   " + lcTableName + "Id    =   @" + lcTableName + "Id \";");
+                template.AppendLine("                WHERE   " + primaryKey + "    =   @" + primaryKey + ";\"");
                 template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
 
                 // loop end
@@ -5233,10 +5425,11 @@ namespace RebelCmsConsoleApplication
 
                 template.AppendLine("                {");
                 // loop start
+
                 template.AppendLine("                    new ()");
                 template.AppendLine("                    {");
-                template.AppendLine("                        Key = \"@" + lcTableName + "Id\",");
-                template.AppendLine("                        Value = " + lcTableName + "Model." + ucTableName + "Key");
+                template.AppendLine("                        Key = \"@" + primaryKey + "\",");
+                template.AppendLine("                        Value = " + lcTableName + "Model." + primaryKey.Replace("Id","Key"));
                 template.AppendLine("                   },");
                 template.AppendLine(loopColumn.ToString().TrimEnd(','));
                 // loop end
@@ -5258,6 +5451,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("        }");
                 template.AppendLine("        public void Delete(" + ucTableName + "Model " + lcTableName + "Model)");
                 template.AppendLine("        {");
+                var primaryKey  = GetPrimayKeyTableName(tableName);
                 template.AppendLine("            string sql = string.Empty;");
                 template.AppendLine("            List<ParameterModel> parameterModels = new ();");
                 template.AppendLine("            using MySqlConnection connection = SharedUtil.GetConnection();");
@@ -5265,17 +5459,19 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("            {");
                 template.AppendLine("                connection.Open();");
                 template.AppendLine("                MySqlTransaction mySqlTransaction = connection.BeginTransaction();");
+                // we do soft delete for easy long term audit
                 template.AppendLine("                sql = @\"");
                 template.AppendLine("                UPDATE  " + tableName + " ");
                 template.AppendLine("                SET     isDelete    =   1");
-                template.AppendLine("                WHERE   " + lcTableName + "Id    =   @" + lcTableName + "Id\";");
+                template.AppendLine("                WHERE   " + primaryKey + "    =   @" + primaryKey + "\";");
                 template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
                 template.AppendLine("                parameterModels = new List<ParameterModel>");
+
                 template.AppendLine("                {");
                 template.AppendLine("                    new ()");
                 template.AppendLine("                    {");
                 template.AppendLine("                        Key = \"@" + lcTableName + "Id\",");
-                template.AppendLine("                        Value = " + lcTableName + "Model." + ucTableName + "Key");
+                template.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(primaryKey.Replace("Id","Key")));
                 template.AppendLine("                   }");
                 template.AppendLine("                };");
                 template.AppendLine("                foreach (ParameterModel parameter in parameterModels)");
