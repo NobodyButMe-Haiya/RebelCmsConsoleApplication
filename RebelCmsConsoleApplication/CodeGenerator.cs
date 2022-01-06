@@ -261,8 +261,11 @@ namespace RebelCmsConsoleApplication
                         }
                         else if (GetBlobType().Any(x => Type.Contains(x)))
                         {
-                            template.AppendLine("\tpublic byte[]?  " + UpperCaseFirst(Field) + " { get; init; } ");
-
+                            // there is a bit issue here . When we received image we convert to byte   while receiving forcing 
+                            // byte to convert to base 64 is memory process. JS not perfect. So in the controller we set value to null . not using init for this   
+                            // we don't want large field 
+                            template.AppendLine("\tpublic byte[]?  " + UpperCaseFirst(Field) + " { get; set; } ");
+                            template.AppendLine("\tpublic string?  " + UpperCaseFirst(Field) + "Base64String { get; set; } ");
                         }
                         else
                         {
@@ -351,18 +354,28 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine($"   return File(content,\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\",\"{fileName}.xlsx\");");
                 template.AppendLine("  }");
                 template.AppendLine("  [HttpPost]");
-                // if got one thing upload image need to put idiot async 
+                // if got one thing upload image need to put idiot async /
+                // this is for single upload . not mutiple . 
                 var imageUpload = false;
+                var imageFileName = string.Empty;
+
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
-                    string Type = string.Empty;
 
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
                     if (describeTableModel.TypeValue != null)
                         Type = describeTableModel.TypeValue;
 
                     if (GetBlobType().Any(x => Type.Contains(x)))
                     {
                         imageUpload = true;
+                        imageFileName = UpperCaseFirst(Field);
                         break;
                     }
                 }
@@ -534,6 +547,12 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        try");
                 template.AppendLine("                        {");
                 template.AppendLine($"                           data = {lcTableName}Repository.Read();");
+                if(imageUpload){
+                    //  Return Base 64 String so can easily understand by html/javascript
+                    template.AppendLine("data."+imageFileName+"Base64String =sharedUtil.GetImageString(data."+imageFileName+");");
+                    // we don't want double data image 
+                    template.AppendLine("data."+imageFileName+"=\"\";");
+                }
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.CREATE_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
@@ -2824,20 +2843,33 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("               $(\"#tableBody\").html(\"\").html(emptyTemplate());");
                 template.AppendLine("              } else {");
                 //@todo need detail tommorow if  blob need to generated the images 
-                foreach (var fieldName in fieldNameList)
+                foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
 
 
-                    if (name.Contains("Id"))
-                    {
-                        template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val(data.dataSingle." + LowerCaseFirst(name) + ");");
-                    }
+                     if (!Key.Equals("PRI"))
+                            {
+                                if (!Field.Equals("tenantId"))
+                                {
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field.Replace("Id", "Key")) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                                }
+                    }            else if (GetBlobType().Any(x => Type.Contains(x)))
+                        {
+                            // here we implement dummy image preview 
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").attr(url,data.dataSingle." + LowerCaseFirst(Field) + "64BaseString);");
+                        }
                     else
                     {
-                        template.AppendLine("\t$(\"#" + name + "\").val(data.dataSingle." + LowerCaseFirst(name) + ");");
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
                     }
 
                 }
