@@ -2099,7 +2099,7 @@ namespace RebelCmsConsoleApplication
                             template.AppendLine("<div class=\"col-md-6\">");
                             template.AppendLine("<div class=\"form-group\">");
                             template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                            template.AppendLine($"\t<input type=\"file\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
+                            template.AppendLine($"\t<input type=\"file\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" onchange=\"showPreview(event,'{LowerCaseFirst(Field)}Image');\" />");
                             // if you want multi image need to alter the db and create new mime field
                             template.AppendLine($"\t<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==\" id=\"{LowerCaseFirst(Field)}Image\" class=\"img-fluid\"  accept=\"image/png\" style=\"width:100px;height:100px\" />");
                             template.AppendLine("</div>");
