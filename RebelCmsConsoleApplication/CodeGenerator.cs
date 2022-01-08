@@ -1993,7 +1993,7 @@ namespace RebelCmsConsoleApplication
                         if (Key.Equals("PRI"))
                         {
                             // do nothing here
-                            template.AppendLine($"\t<input type=\"hidden\" id=\"{Field}\" />");
+                            template.AppendLine($"\t<input type=\"hidden\" id=\"{Field.Replace("Id","Key")}\" />");
                             // don't calculate this for two
                             d--;
                         }
@@ -2100,7 +2100,8 @@ namespace RebelCmsConsoleApplication
                             template.AppendLine("<div class=\"form-group\">");
                             template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
                             template.AppendLine($"\t<input type=\"file\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
-                            template.AppendLine($"\t<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==\" id=\"{LowerCaseFirst(Field)}Image\" class=\"form-control\" />");
+                            // if you want multi image need to alter the db and create new mime field
+                            template.AppendLine($"\t<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==\" id=\"{LowerCaseFirst(Field)}Image\" class=\"img-fluid\"  accept=\"image/png\" style=\"width:100px;height:100px\" />");
                             template.AppendLine("</div>");
                             template.AppendLine("</div>");
                         }
@@ -2548,14 +2549,15 @@ namespace RebelCmsConsoleApplication
 
                     if (!GetHiddenField().Any(x => name.Contains(x)))
                     {
-                        if (name.Contains("Id"))
+                          if (name.Contains("Id"))
                         {
-                            template.AppendLine($"            {name.Replace("Id", "Key")}: {name.Replace("Id", "Key")}.val(),");
+                            template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" + name.Replace("Id", "Key") + "\").val(),");
                         }
                         else
                         {
-                            template.AppendLine($"            {name}: {name}.val(),");
+                            template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
                         }
+                  
                     }
                 }
                 // loop here
@@ -2866,22 +2868,18 @@ namespace RebelCmsConsoleApplication
                     {
                         if (GetNumberDataType().Any(x => Type.Contains(x)))
                         {
-                            if (!Key.Equals("PRI"))
-                            {
-                                if (!Field.Equals("tenantId"))
-                                {
-                                    if (Key.Equals("MUL"))
+                        
+                                    if (Key.Equals("MUL") || Key.Equals("PRI"))
                                     {
                                         // this is a a bit hard upon your need to change a lot here ! but better manually 
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field.Replace("Id", "Key")) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field.Replace("Id", "Key")) + "\").val(data.dataSingle." + LowerCaseFirst(Field.Replace("Id","Key")) + ");");
                                     }
                                     else
                                     {
                                         template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
 
                                     }
-                                }
-                            }
+                          
                         }
                         else if (Type.Contains("decimal") || Type.Equals("double") || Type.Equals("float"))
                         {
@@ -3007,11 +3005,11 @@ namespace RebelCmsConsoleApplication
                     {
                         if (name.Contains("Id"))
                         {
-                            template.AppendLine($"            {name.Replace("Id", "Key")}: {name.Replace("Id", "Key")}.val(),");
+                            template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" + name.Replace("Id", "Key") + "\").val(),");
                         }
                         else
                         {
-                            template.AppendLine($"            {name}: {name}.val(),");
+                            template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
                         }
                     }
                 }
@@ -3138,17 +3136,17 @@ namespace RebelCmsConsoleApplication
                         name = fieldName;
 
 
-                    if (name.Contains("Id"))
+                     if (name.Contains("Id"))
                     {
-                        template.AppendLine($"\t{name.Replace("Id", "Key")}.val('');");
+                        template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
                     }
                     else
                     {
-                        template.AppendLine("\t" + name + ".val('');");
+                        template.AppendLine("\t$(\"#" + name + "\").val('');");
                     }
 
                 }
-                template.AppendLine("               $(\"#" + lcTableName + "-\" + " + lcTableName + "Key).val('');");
+                template.AppendLine("               readRecord();");
                 template.AppendLine("               Swal.fire(\"System\", \"@SharedUtil.RecordDeleted\", \"success\");");
                 template.AppendLine("              } else if (status === false) {");
                 template.AppendLine("               if (typeof(code) === 'string'){");
