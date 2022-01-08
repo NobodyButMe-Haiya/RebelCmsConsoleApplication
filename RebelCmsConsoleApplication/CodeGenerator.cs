@@ -357,7 +357,7 @@ namespace RebelCmsConsoleApplication
                 // if got one thing upload image need to put idiot async /
                 // this is for single upload . not mutiple . 
                 var imageUpload = false;
-                var imageFileName = string.Empty;
+                List<string> imageFileName = new();
 
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
@@ -375,9 +375,12 @@ namespace RebelCmsConsoleApplication
                     if (GetBlobType().Any(x => Type.Contains(x)))
                     {
                         imageUpload = true;
-                        imageFileName = UpperCaseFirst(Field);
+                        imageFileName.Add(UpperCaseFirst(Field));
                         break;
                     }
+                }
+                if(imageFileName.Count >0){
+                    imageUpload = true;
                 }
                 if (!imageUpload)
                 {
@@ -547,12 +550,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        try");
                 template.AppendLine("                        {");
                 template.AppendLine($"                           data = {lcTableName}Repository.Read();");
-                if(imageUpload){
-                    //  Return Base 64 String so can easily understand by html/javascript
-                    template.AppendLine("data."+imageFileName+"Base64String =sharedUtil.GetImageString(data."+imageFileName+");");
-                    // we don't want double data image 
-                    template.AppendLine("data."+imageFileName+"=\"\";");
-                }
+    
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.CREATE_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
@@ -572,7 +570,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                    {");
                 template.AppendLine("                        try");
                 template.AppendLine("                        {");
-                template.AppendLine($"                           data = {lcTableName}Repository.Search(search);");
+ 
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.READ_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
@@ -599,6 +597,14 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine($"                                {ucTableName}Key = {lcTableName}Key");
                 template.AppendLine("                            };");
                 template.AppendLine($"                           dataSingle = {lcTableName}Repository.GetSingle({lcTableName}Model);");
+                    if(imageUpload){
+                    //  Return Base 64 String so can easily understand by html/javascript
+                    foreach(var field in imageFileName){
+                        template.AppendLine("dataSingle."+field+"Base64String =sharedUtil.GetImageString(dataSingle."+field+");");
+                        // we don't want double data image 
+                        template.AppendLine("dataSingle."+field+"= new byte[0];");
+                    }
+                }
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.READ_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
@@ -1999,7 +2005,7 @@ namespace RebelCmsConsoleApplication
                                 template.AppendLine("\t<div class=\"form-group\"");
                                 template.AppendLine($"\t\t<label for=\"{Field.Replace("Id", "Key")}\">{SplitToSpaceLabel(Field.Replace("Id", ""))}</label>");
                                 template.AppendLine($"\t\t<select id=\"{Field.Replace("Id", "Key")}\" class=\"form-control\">");
-                                template.AppendLine($"                                            <select name=\"{Field.Replace("Id", "Key")}\" id=\"{Field.Replace("Id", "Key")}\" class=\"form-control\">");
+                                template.AppendLine($"                                            <select name=\"{Field.Replace("Id", "Key")}\" id=\"{LowerCaseFirst(Field.Replace("Id", "Key"))}\" class=\"form-control\">");
                                 template.AppendLine($"                                              @if ({Field.Replace("Id", "")}Models.Count == 0)");
                                 template.AppendLine("                                                {");
                                 template.AppendLine("                                                  <option value=\"\">Please Create A New field </option>");
@@ -2026,8 +2032,8 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine("<div class=\"col-md-6\">");
                             template.AppendLine("<div class=\"form-group\">");
-                            template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                            template.AppendLine($"\t<input type=\"number\" id=\"{Field}\" class=\"form-control\" placeholder=\"\" />");
+                            template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                            template.AppendLine($"\t<input type=\"number\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" placeholder=\"\" />");
                             template.AppendLine("</div>");
                             template.AppendLine("</div>");
                         }
@@ -2035,8 +2041,8 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine("<div class=\"col-md-6\">");
                             template.AppendLine("<div class=\"form-group\">");
-                            template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                            template.AppendLine($"\t<input type=\"number\" step=\"0.01\" id=\"{Field}\" class=\"form-control\" />");
+                            template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                            template.AppendLine($"\t<input type=\"number\" step=\"0.01\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                             template.AppendLine("</div>");
                             template.AppendLine("</div>");
                         }
@@ -2046,8 +2052,8 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("<div class=\"col-md-6\">");
                                 template.AppendLine("<div class=\"form-group\">");
-                                template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                                template.AppendLine($"\t<input type=\"datetime-local\" id=\"{Field}\" class=\"form-control\" />");
+                                template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                                template.AppendLine($"\t<input type=\"datetime-local\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                                 template.AppendLine("</div>");
                                 template.AppendLine("</div>");
                             }
@@ -2055,8 +2061,8 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("<div class=\"col-md-6\">");
                                 template.AppendLine("<div class=\"form-group\">");
-                                template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                                template.AppendLine($"\t<input type=\"date\" id=\"{Field}\" class=\"form-control\" />");
+                                template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                                template.AppendLine($"\t<input type=\"date\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                                 template.AppendLine("</div>");
                                 template.AppendLine("</div>");
                             }
@@ -2064,8 +2070,8 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("<div class=\"col-md-6\">");
                                 template.AppendLine("<div class=\"form-group\">");
-                                template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                                template.AppendLine($"\t<input type=\"time\" id=\"{Field}\" class=\"form-control\" />");
+                                template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                                template.AppendLine($"\t<input type=\"time\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                                 template.AppendLine("</div>");
                                 template.AppendLine("</div>");
                             }
@@ -2073,8 +2079,8 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("<div class=\"col-md-6\">");
                                 template.AppendLine("<div class=\"form-group\">");
-                                template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                                template.AppendLine($"\t<input type=\"number\" min=\"1900\" max=\"2099\" step=\"1\" id=\"{Field}\" class=\"form-control\" />");
+                                template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                                template.AppendLine($"\t<input type=\"number\" min=\"1900\" max=\"2099\" step=\"1\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                                 template.AppendLine("</div>");
                                 template.AppendLine("</div>");
                             }
@@ -2082,8 +2088,8 @@ namespace RebelCmsConsoleApplication
                             {
                                 template.AppendLine("<div class=\"col-md-6\">");
                                 template.AppendLine("<div class=\"form-group\">");
-                                template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                                template.AppendLine($"\t<input type=\"text\" id=\"{Field}\" class=\"form-control\" />");
+                                template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                                template.AppendLine($"\t<input type=\"text\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                                 template.AppendLine("</div>");
                                 template.AppendLine("</div>");
                             }
@@ -2092,8 +2098,9 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine("<div class=\"col-md-6\">");
                             template.AppendLine("<div class=\"form-group\">");
-                            template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                            template.AppendLine($"\t<input type=\"file\" id=\"{Field}\" class=\"form-control\" />");
+                            template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                            template.AppendLine($"\t<input type=\"file\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
+                            template.AppendLine($"\t<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==\" id=\"{LowerCaseFirst(Field)}Image\" class=\"form-control\" />");
                             template.AppendLine("</div>");
                             template.AppendLine("</div>");
                         }
@@ -2101,8 +2108,8 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine("<div class=\"col-md-6\">");
                             template.AppendLine("<div class=\"form-group\">");
-                            template.AppendLine($"\t<label for=\"{Field}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
-                            template.AppendLine($"\t<input type=\"text\" id=\"{Field}\" class=\"form-control\" />");
+                            template.AppendLine($"\t<label for=\"{LowerCaseFirst(Field)}\">{SplitToSpaceLabel(Field.Replace(tableName, ""))}</label>");
+                            template.AppendLine($"\t<input type=\"text\" id=\"{LowerCaseFirst(Field)}\" class=\"form-control\" />");
                             template.AppendLine("</div>");
                             template.AppendLine("</div>");
                         }
@@ -2574,8 +2581,8 @@ namespace RebelCmsConsoleApplication
                 // flip disabled button enabled
                 template.AppendLine("  $(\"" + lcTableName + "Key\").val(lastInsertKey);");
                 template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#updateButton\").remoteAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#deleteButton\").remoteAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
                 template.AppendLine("             Swal.fire({");
                 template.AppendLine("               title: 'Success!',");
                 template.AppendLine("               text: '@SharedUtil.RecordCreated',");
@@ -2855,28 +2862,74 @@ namespace RebelCmsConsoleApplication
                     if (describeTableModel.TypeValue != null)
                         Type = describeTableModel.TypeValue;
 
-
-                     if (!Key.Equals("PRI"))
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
+                    {
+                        if (GetNumberDataType().Any(x => Type.Contains(x)))
+                        {
+                            if (!Key.Equals("PRI"))
                             {
                                 if (!Field.Equals("tenantId"))
                                 {
+                                    if (Key.Equals("MUL"))
+                                    {
+                                        // this is a a bit hard upon your need to change a lot here ! but better manually 
                         template.AppendLine("\t$(\"#" + LowerCaseFirst(Field.Replace("Id", "Key")) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                                    }
+                                    else
+                                    {
+                                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+
+                                    }
                                 }
-                    }            else if (GetBlobType().Any(x => Type.Contains(x)))
-                        {
-                            // here we implement dummy image preview 
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").attr(url,data.dataSingle." + LowerCaseFirst(Field) + "64BaseString);");
+                            }
                         }
-                    else
-                    {
+                        else if (Type.Contains("decimal") || Type.Equals("double") || Type.Equals("float"))
+                        {
+                            template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                        }
+                        else if (GetDateDataType().Any(x => Type.Contains(x)))
+                        {
+                            if (Type.ToString().Contains("datetime"))
+                            {
                         template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                            }
+                            else if (Type.ToString().Contains("date"))
+                            {
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+
+                            }
+                            else if (Type.ToString().Contains("time"))
+                            {
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+
+                            }
+                            else if (Type.ToString().Contains("year"))
+                            {
+                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+
+                            }
+                            else
+                            {
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+
+                            }
+                        }     else if (GetBlobType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "Image\").attr(\"src\",data.dataSingle." + LowerCaseFirst(Field) + "Base64String);");
+                        }
+                        else
+                        {
+                            template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                        }
+                      
                     }
+
 
                 }
 
                 template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#updateButton\").remoteAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#deleteButton\").remoteAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
 
                 template.AppendLine("              }");
                 template.AppendLine("             } else if (status === false) {");
@@ -2981,8 +3034,8 @@ namespace RebelCmsConsoleApplication
                 // flip the delete button enable
                 // flip the create button disabled
                 template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#updateButton\").remoteAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#deleteButton\").remoteAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
                 template.AppendLine("            Swal.fire(\"System\", \"@SharedUtil.RecordUpdated\", 'success')");
                 template.AppendLine("           } else if (status === false) {");
                 template.AppendLine("            if (typeof(code) === 'string'){");
@@ -3075,7 +3128,7 @@ namespace RebelCmsConsoleApplication
                 // flip the delete button disabled
                 // flip the create button enabled
                 // reset all record 
-                template.AppendLine("            $(\"#createButton\").remoteAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"#createButton\").removeAttr(\"disabled\",\"disabled\");");
                 template.AppendLine("            $(\"#updateButton\").attr(\"disabled\",\"disabled\");");
                 template.AppendLine("            $(\"#deleteButton\").attr(\"disabled\",\"disabled\");");
                 foreach (var fieldName in fieldNameList)
@@ -5285,8 +5338,8 @@ namespace RebelCmsConsoleApplication
                     }
                 }
                 // how many table join is related ? 
-                template.AppendLine($"\t WHERE   {tableName}.isDelete != 1");
-                template.AppendLine("                WHERE   " + tableName + "." + primaryKey + "    =   @" + primaryKey + " LIMIT 1\";");
+                template.AppendLine($"                WHERE   {tableName}.isDelete != 1");
+                template.AppendLine("                AND   " + tableName + "." + primaryKey + "    =   @" + primaryKey + " LIMIT 1\";");
                 template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
                 template.AppendLine("                parameterModels = new List<ParameterModel>");
                 template.AppendLine("                {");
