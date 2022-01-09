@@ -379,7 +379,8 @@ namespace RebelCmsConsoleApplication
                         break;
                     }
                 }
-                if(imageFileName.Count >0){
+                if (imageFileName.Count > 0)
+                {
                     imageUpload = true;
                 }
                 if (!imageUpload)
@@ -550,7 +551,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                        try");
                 template.AppendLine("                        {");
                 template.AppendLine($"                           data = {lcTableName}Repository.Read();");
-    
+
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.CREATE_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
@@ -570,7 +571,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                    {");
                 template.AppendLine("                        try");
                 template.AppendLine("                        {");
- 
+
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.READ_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
@@ -597,12 +598,14 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine($"                                {ucTableName}Key = {lcTableName}Key");
                 template.AppendLine("                            };");
                 template.AppendLine($"                           dataSingle = {lcTableName}Repository.GetSingle({lcTableName}Model);");
-                    if(imageUpload){
+                if (imageUpload)
+                {
                     //  Return Base 64 String so can easily understand by html/javascript
-                    foreach(var field in imageFileName){
-                        template.AppendLine("dataSingle."+field+"Base64String =sharedUtil.GetImageString(dataSingle."+field+");");
+                    foreach (var field in imageFileName)
+                    {
+                        template.AppendLine("dataSingle." + field + "Base64String =sharedUtil.GetImageString(dataSingle." + field + ");");
                         // we don't want double data image 
-                        template.AppendLine("dataSingle."+field+"= new byte[0];");
+                        template.AppendLine("dataSingle." + field + "= new byte[0];");
                     }
                 }
                 template.AppendLine("                            code = ((int)ReturnCodeEnum.READ_SUCCESS).ToString();");
@@ -1861,6 +1864,10 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("@{");
                 template.AppendLine("    SharedUtil sharedUtils = new(_httpContextAccessor);");
                 template.AppendLine($"    List<{ucTableName}Model> {lcTableName}Models = new();");
+
+                var imageUpload = false;
+                List<string> imageFileName = new();
+
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
                     string Key = string.Empty;
@@ -1877,6 +1884,17 @@ namespace RebelCmsConsoleApplication
                             template.AppendLine($"    List<{UpperCaseFirst(Field.Replace("Id", ""))}Model> {LowerCaseFirst(Field.Replace("Id", ""))}Models = new();");
 
                     }
+                    if (GetBlobType().Any(x => Type.Contains(x)))
+                    {
+                        imageUpload = true;
+                        imageFileName.Add(UpperCaseFirst(Field));
+                        break;
+                    }
+                }
+
+                if (imageFileName.Count > 0)
+                {
+                    imageUpload = true;
                 }
                 template.AppendLine("    try");
                 template.AppendLine("    {");
@@ -1993,7 +2011,7 @@ namespace RebelCmsConsoleApplication
                         if (Key.Equals("PRI"))
                         {
                             // do nothing here
-                            template.AppendLine($"\t<input type=\"hidden\" id=\"{Field.Replace("Id","Key")}\" />");
+                            template.AppendLine($"\t<input type=\"hidden\" id=\"{Field.Replace("Id", "Key")}\" />");
                             // don't calculate this for two
                             d--;
                         }
@@ -2130,12 +2148,12 @@ namespace RebelCmsConsoleApplication
                 // loop here
                 // end form here 
 
-         
+
                 template.AppendLine("                    </div>");
-           
+
                 template.AppendLine("                </div>");
-                    template.AppendLine("                </div>");
-                 template.AppendLine("            </form>");
+                template.AppendLine("                </div>");
+                template.AppendLine("            </form>");
 
 
                 template.AppendLine("                <div class=\"row\">");
@@ -2150,7 +2168,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("\t<div class=\"card-body\">");
                 template.AppendLine("\t\t<input name=\"search\" id=\"search\" class=\"form-control\" placeholder=\"Please Enter Name  Or Other Here\" maxlength=\"64\" style =\"width: 350px!important;\" />");
                 template.AppendLine("\t</div>");
-                
+
                 template.AppendLine("\t<div class=\"card-footer\">");
                 template.AppendLine("\t\t<button type=\"button\" class=\"btn btn-info\" onclick=\"searchRecord()\">");
                 template.AppendLine("\t\t\t<i class=\"fas fa-filter\"></i> Filter");
@@ -2161,7 +2179,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("\t\t</button>");
                 template.AppendLine("\t</div>");
                 template.AppendLine("</div>");
-               
+
                 template.AppendLine("                <div class=\"row\">");
                 template.AppendLine("                    <div class=\"col-xs-12 col-sm-12 col-md-12\">&nbsp;</div>");
                 template.AppendLine("                </div>");
@@ -2370,7 +2388,9 @@ namespace RebelCmsConsoleApplication
                     {
                         template.AppendLine("\t$(\"#" + name + "\").val('');");
                     }
-
+                    template.AppendLine("            $(\"#createButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#updateButton\").attr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#deleteButton\").attr(\"disabled\",\"disabled\");");
                 }
                 template.AppendLine("        }");
                 template.AppendLine("        function resetRecord() {");
@@ -2513,135 +2533,316 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                \"</tr>\";");
                 template.AppendLine("               return template; ");
                 template.AppendLine("        }");
-                template.AppendLine("        function createRecord() {");
-                // loop here 
-                foreach (var fieldName in fieldNameList)
+                // if there is upload will be using form-data instead 
+                if (imageUpload)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+                    template.AppendLine("        function createRecord() {");
+                    template.AppendLine("          var formData = new FormData();");
+                    // loop here 
+                    foreach (DescribeTableModel describeTableModel in describeTableModels)
                     {
-                        if (name.Contains("Id"))
+                        string Key = string.Empty;
+                        string Field = string.Empty;
+                        string Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            template.AppendLine($"         const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
-                        }
-                        else
-                        {
-                            template.AppendLine($"         const {name} = $(\"#{name}\");");
+                            if (Key.Equals("PRI"))
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field.Replace("Id","Key"))}',$(\"#{LowerCaseFirst(Field.Replace("Id", "Key"))}\").val());");
+
+                            }
+                            else if (Key.Equals("MUL"))
+                            {
+                                if (!Field.Equals("tenantId"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field.Replace("Id", "Key"))}',$(\"#{LowerCaseFirst(Field.Replace("Id", "Key"))}\").val());");
+
+                                }
+
+                            }
+                            else if (GetNumberDataType().Any(x => Type.Contains(x)))
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                            }
+                            else if (Type.Contains("decimal") || Type.Equals("double") || Type.Equals("float"))
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                            }
+                            else if (GetDateDataType().Any(x => Type.Contains(x)))
+                            {
+                                if (Type.ToString().Contains("datetime"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else if (Type.ToString().Contains("date"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else if (Type.ToString().Contains("time"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else if (Type.ToString().Contains("year"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                            }
+                            else if (GetBlobType().Any(x => Type.Contains(x)))
+                            {
+                                // we check the size more then something ..
+                                template.AppendLine($"var files{UpperCaseFirst(Field)} = $('#{LowerCaseFirst(Field)}')[0].files;");
+                                template.AppendLine("if(files.length > 0 ){");
+                                template.AppendLine("        formData.Append('" + LowerCaseFirst(Field) + "',files" + UpperCaseFirst(Field) + "[0]);");
+                                template.AppendLine("}");
+
+                            }
+                            else
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                            }
                         }
                     }
+                    // loop here
+                    template.AppendLine("         $.ajax({");
+                    template.AppendLine("          type: 'POST',");
+                    template.AppendLine("           url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
+                    template.AppendLine("           async: false,");
+                    template.AppendLine("           contentType: false,");
+                    template.AppendLine("           processData: false, ");
+                    template.AppendLine("           data: formData,");
+                    template.AppendLine("           statusCode: {");
+                    template.AppendLine("            500: function () {");
+                    template.AppendLine("             Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("           }");
+                    template.AppendLine("          },");
+                    template.AppendLine("          beforeSend: function () {");
+                    template.AppendLine("           console.log(\"loading ..\");");
+                    template.AppendLine("          }}).done(function(data)  {");
+                    template.AppendLine("            if (data === void 0) {");
+                    template.AppendLine("             location.href = \"/\";");
+                    template.AppendLine("            }");
+                    template.AppendLine("            let status = data.status;");
+                    template.AppendLine("            let code = data.code;");
+                    template.AppendLine("            if (status) {");
+                    template.AppendLine("             const lastInsertKey = data.lastInsertKey;");
+                    template.AppendLine("             $(\"#tableBody\").prepend(template(lastInsertKey," + createTemplateField.ToString().TrimEnd(',') + "));");
+                    // put value in input hidden
+                    // flip create button disabled
+                    // flip update button enabled
+                    // flip disabled button enabled
+                    template.AppendLine("  $(\"" + LowerCaseFirst(primaryKey.Replace("Id","Key")) + "\").val(lastInsertKey);");
+                    template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("             Swal.fire({");
+                    template.AppendLine("               title: 'Success!',");
+                    template.AppendLine("               text: '@SharedUtil.RecordCreated',");
+                    template.AppendLine("               icon: 'success',");
+                    template.AppendLine("               confirmButtonText: 'Cool'");
+                    template.AppendLine("             });");
+
+                    template.AppendLine("            } else if (status === false) {");
+                    template.AppendLine("             if (typeof(code) === 'string'){");
+                    template.AppendLine("             @{");
+                    template.AppendLine("              if (sharedUtils.GetRoleId().Equals( (int)AccessEnum.ADMINISTRATOR_ACCESS ))");
+                    template.AppendLine("              {");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"Debugging Admin\", code, \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }else{");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }");
+                    template.AppendLine("             }");
+                    template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
+                    template.AppendLine("             let timerInterval;");
+                    template.AppendLine("             Swal.fire({");
+                    template.AppendLine("              title: 'Auto close alert!',");
+                    template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
+                    template.AppendLine("              timer: 2000,");
+                    template.AppendLine("              timerProgressBar: true,");
+                    template.AppendLine("              didOpen: () => {");
+                    template.AppendLine("                Swal.showLoading();");
+                    template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
+                    template.AppendLine("                timerInterval = setInterval(() => {");
+                    template.AppendLine("                b.textContent = Swal.getTimerLeft()");
+                    template.AppendLine("               }, 100)");
+                    template.AppendLine("              },");
+                    template.AppendLine("              willClose: () => {");
+                    template.AppendLine("               clearInterval(timerInterval)");
+                    template.AppendLine("              }");
+                    template.AppendLine("            }).then((result) => {");
+                    template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
+                    template.AppendLine("               console.log('session out .. ');");
+                    template.AppendLine("               location.href = \"/\";");
+                    template.AppendLine("              }");
+                    template.AppendLine("            });");
+                    template.AppendLine("           } else {");
+                    template.AppendLine("            location.href = \"/\";");
+                    template.AppendLine("           }");
+                    template.AppendLine("          } else {");
+                    template.AppendLine("           location.href = \"/\";");
+                    template.AppendLine("          }");
+                    template.AppendLine("         }).fail(function(xhr)  {");
+                    template.AppendLine("          console.log(xhr.status);");
+                    template.AppendLine("          Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("         }).always(function (){");
+                    template.AppendLine("          console.log(\"always:complete\");    ");
+                    template.AppendLine("         });");
+                    template.AppendLine("        }");
                 }
-                // loop here
-                template.AppendLine("         $.ajax({");
-                template.AppendLine("          type: 'POST',");
-                template.AppendLine("           url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
-                template.AppendLine("           async: false,");
-                template.AppendLine("           data: {");
-                template.AppendLine("            mode: 'create',");
-                template.AppendLine("            leafCheckKey: @navigationModel.LeafCheckKey,");
-                // loop here
-                foreach (var fieldName in fieldNameList)
+                else
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
-
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+                    template.AppendLine("        function createRecord() {");
+                    // loop here 
+                    foreach (var fieldName in fieldNameList)
                     {
-                          if (name.Contains("Id"))
+                        var name = string.Empty;
+                        if (fieldName != null)
+                            name = fieldName;
+                        if (!GetHiddenField().Any(x => name.Contains(x)))
                         {
-                            template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" + name.Replace("Id", "Key") + "\").val(),");
+                            if (name.Contains("Id"))
+                            {
+                                template.AppendLine($"         const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
+                            }
+                            else
+                            {
+                                template.AppendLine($"         const {name} = $(\"#{name}\");");
+                            }
                         }
-                        else
-                        {
-                            template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
-                        }
-                  
                     }
-                }
-                // loop here
-                template.AppendLine("           },statusCode: {");
-                template.AppendLine("            500: function () {");
-                template.AppendLine("             Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("           }");
-                template.AppendLine("          },");
-                template.AppendLine("          beforeSend: function () {");
-                template.AppendLine("           console.log(\"loading ..\");");
-                template.AppendLine("          }}).done(function(data)  {");
-                template.AppendLine("            if (data === void 0) {");
-                template.AppendLine("             location.href = \"/\";");
-                template.AppendLine("            }");
-                template.AppendLine("            let status = data.status;");
-                template.AppendLine("            let code = data.code;");
-                template.AppendLine("            if (status) {");
-                template.AppendLine("             const lastInsertKey = data.lastInsertKey;");
-                template.AppendLine("             $(\"#tableBody\").prepend(template(lastInsertKey," + createTemplateField.ToString().TrimEnd(',') + "));");
-                // put value in input hidden
-                // flip create button disabled
-                // flip update button enabled
-                // flip disabled button enabled
-                template.AppendLine("  $(\"" + lcTableName + "Key\").val(lastInsertKey);");
-                template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("             Swal.fire({");
-                template.AppendLine("               title: 'Success!',");
-                template.AppendLine("               text: '@SharedUtil.RecordCreated',");
-                template.AppendLine("               icon: 'success',");
-                template.AppendLine("               confirmButtonText: 'Cool'");
-                template.AppendLine("             });");
+                    // loop here
+                    template.AppendLine("         $.ajax({");
+                    template.AppendLine("          type: 'POST',");
+                    template.AppendLine("           url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
+                    template.AppendLine("           async: false,");
+                    template.AppendLine("           data: {");
+                    template.AppendLine("            mode: 'create',");
+                    template.AppendLine("            leafCheckKey: @navigationModel.LeafCheckKey,");
+                    // loop here
+                    foreach (var fieldName in fieldNameList)
+                    {
+                        var name = string.Empty;
+                        if (fieldName != null)
+                            name = fieldName;
 
-                template.AppendLine("            } else if (status === false) {");
-                template.AppendLine("             if (typeof(code) === 'string'){");
-                template.AppendLine("             @{");
-                template.AppendLine("              if (sharedUtils.GetRoleId().Equals( (int)AccessEnum.ADMINISTRATOR_ACCESS ))");
-                template.AppendLine("              {");
-                template.AppendLine("               <text>");
-                template.AppendLine("                Swal.fire(\"Debugging Admin\", code, \"error\");");
-                template.AppendLine("               </text>");
-                template.AppendLine("              }else{");
-                template.AppendLine("               <text>");
-                template.AppendLine("                Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("               </text>");
-                template.AppendLine("              }");
-                template.AppendLine("             }");
-                template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("             let timerInterval;");
-                template.AppendLine("             Swal.fire({");
-                template.AppendLine("              title: 'Auto close alert!',");
-                template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
-                template.AppendLine("              timer: 2000,");
-                template.AppendLine("              timerProgressBar: true,");
-                template.AppendLine("              didOpen: () => {");
-                template.AppendLine("                Swal.showLoading();");
-                template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
-                template.AppendLine("                timerInterval = setInterval(() => {");
-                template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("               }, 100)");
-                template.AppendLine("              },");
-                template.AppendLine("              willClose: () => {");
-                template.AppendLine("               clearInterval(timerInterval)");
-                template.AppendLine("              }");
-                template.AppendLine("            }).then((result) => {");
-                template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
-                template.AppendLine("               console.log('session out .. ');");
-                template.AppendLine("               location.href = \"/\";");
-                template.AppendLine("              }");
-                template.AppendLine("            });");
-                template.AppendLine("           } else {");
-                template.AppendLine("            location.href = \"/\";");
-                template.AppendLine("           }");
-                template.AppendLine("          } else {");
-                template.AppendLine("           location.href = \"/\";");
-                template.AppendLine("          }");
-                template.AppendLine("         }).fail(function(xhr)  {");
-                template.AppendLine("          console.log(xhr.status);");
-                template.AppendLine("          Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("         }).always(function (){");
-                template.AppendLine("          console.log(\"always:complete\");    ");
-                template.AppendLine("         });");
-                template.AppendLine("        }");
+                        if (!GetHiddenField().Any(x => name.Contains(x)))
+                        {
+                            if (name.Contains("Id"))
+                            {
+                                template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" + name.Replace("Id", "Key") + "\").val(),");
+                            }
+                            else
+                            {
+                                template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
+                            }
+
+                        }
+                    }
+                    // loop here
+                    template.AppendLine("           },statusCode: {");
+                    template.AppendLine("            500: function () {");
+                    template.AppendLine("             Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("           }");
+                    template.AppendLine("          },");
+                    template.AppendLine("          beforeSend: function () {");
+                    template.AppendLine("           console.log(\"loading ..\");");
+                    template.AppendLine("          }}).done(function(data)  {");
+                    template.AppendLine("            if (data === void 0) {");
+                    template.AppendLine("             location.href = \"/\";");
+                    template.AppendLine("            }");
+                    template.AppendLine("            let status = data.status;");
+                    template.AppendLine("            let code = data.code;");
+                    template.AppendLine("            if (status) {");
+                    template.AppendLine("             const lastInsertKey = data.lastInsertKey;");
+                    template.AppendLine("             $(\"#tableBody\").prepend(template(lastInsertKey," + createTemplateField.ToString().TrimEnd(',') + "));");
+                    // put value in input hidden
+                    // flip create button disabled
+                    // flip update button enabled
+                    // flip disabled button enabled
+                    template.AppendLine("  $(\"" + LowerCaseFirst(primaryKey.Replace("Id","Key")) + "Key\").val(lastInsertKey);");
+                    template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("             Swal.fire({");
+                    template.AppendLine("               title: 'Success!',");
+                    template.AppendLine("               text: '@SharedUtil.RecordCreated',");
+                    template.AppendLine("               icon: 'success',");
+                    template.AppendLine("               confirmButtonText: 'Cool'");
+                    template.AppendLine("             });");
+
+                    template.AppendLine("            } else if (status === false) {");
+                    template.AppendLine("             if (typeof(code) === 'string'){");
+                    template.AppendLine("             @{");
+                    template.AppendLine("              if (sharedUtils.GetRoleId().Equals( (int)AccessEnum.ADMINISTRATOR_ACCESS ))");
+                    template.AppendLine("              {");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"Debugging Admin\", code, \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }else{");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }");
+                    template.AppendLine("             }");
+                    template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
+                    template.AppendLine("             let timerInterval;");
+                    template.AppendLine("             Swal.fire({");
+                    template.AppendLine("              title: 'Auto close alert!',");
+                    template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
+                    template.AppendLine("              timer: 2000,");
+                    template.AppendLine("              timerProgressBar: true,");
+                    template.AppendLine("              didOpen: () => {");
+                    template.AppendLine("                Swal.showLoading();");
+                    template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
+                    template.AppendLine("                timerInterval = setInterval(() => {");
+                    template.AppendLine("                b.textContent = Swal.getTimerLeft()");
+                    template.AppendLine("               }, 100)");
+                    template.AppendLine("              },");
+                    template.AppendLine("              willClose: () => {");
+                    template.AppendLine("               clearInterval(timerInterval)");
+                    template.AppendLine("              }");
+                    template.AppendLine("            }).then((result) => {");
+                    template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
+                    template.AppendLine("               console.log('session out .. ');");
+                    template.AppendLine("               location.href = \"/\";");
+                    template.AppendLine("              }");
+                    template.AppendLine("            });");
+                    template.AppendLine("           } else {");
+                    template.AppendLine("            location.href = \"/\";");
+                    template.AppendLine("           }");
+                    template.AppendLine("          } else {");
+                    template.AppendLine("           location.href = \"/\";");
+                    template.AppendLine("          }");
+                    template.AppendLine("         }).fail(function(xhr)  {");
+                    template.AppendLine("          console.log(xhr.status);");
+                    template.AppendLine("          Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("         }).always(function (){");
+                    template.AppendLine("          console.log(\"always:complete\");    ");
+                    template.AppendLine("         });");
+                    template.AppendLine("        }");
+                }
                 // read record
                 template.AppendLine("        function readRecord() {");
                 template.AppendLine("         $.ajax({");
@@ -2824,8 +3025,8 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("         window.open(\"api/" + module.ToLower() + "/" + lcTableName + "\");");
                 template.AppendLine("        }");
                 // view record
-                if(primaryKey!= null)
-                template.AppendLine("        function viewRecord("+LowerCaseFirst(primaryKey.Replace("Id","Key"))+") {");
+                if (primaryKey != null)
+                    template.AppendLine("        function viewRecord(" + LowerCaseFirst(primaryKey.Replace("Id", "Key")) + ") {");
                 template.AppendLine("         $.ajax({");
                 template.AppendLine("          type: \"post\",");
                 template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
@@ -2834,8 +3035,8 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("          data: {");
                 template.AppendLine("           mode: \"single\",");
                 template.AppendLine("           leafCheckKey: @navigationModel.LeafCheckKey,");
-                if(primaryKey!= null)
-                template.AppendLine("           " + LowerCaseFirst(primaryKey.Replace("Id","Key")) + ": "+LowerCaseFirst(primaryKey.Replace("Id","Key")));
+                if (primaryKey != null)
+                    template.AppendLine("           " + LowerCaseFirst(primaryKey.Replace("Id", "Key")) + ": " + LowerCaseFirst(primaryKey.Replace("Id", "Key")));
                 template.AppendLine("          }, ");
                 template.AppendLine("          statusCode: {");
                 template.AppendLine("           500: function () {");
@@ -2868,18 +3069,18 @@ namespace RebelCmsConsoleApplication
                     {
                         if (GetNumberDataType().Any(x => Type.Contains(x)))
                         {
-                        
-                                    if (Key.Equals("MUL") || Key.Equals("PRI"))
-                                    {
-                                        // this is a a bit hard upon your need to change a lot here ! but better manually 
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field.Replace("Id", "Key")) + "\").val(data.dataSingle." + LowerCaseFirst(Field.Replace("Id","Key")) + ");");
-                                    }
-                                    else
-                                    {
-                                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
 
-                                    }
-                          
+                            if (Key.Equals("MUL") || Key.Equals("PRI"))
+                            {
+                                // this is a a bit hard upon your need to change a lot here ! but better manually 
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field.Replace("Id", "Key")) + "\").val(data.dataSingle." + LowerCaseFirst(Field.Replace("Id", "Key")) + ");");
+                            }
+                            else
+                            {
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+
+                            }
+
                         }
                         else if (Type.Contains("decimal") || Type.Equals("double") || Type.Equals("float"))
                         {
@@ -2889,21 +3090,21 @@ namespace RebelCmsConsoleApplication
                         {
                             if (Type.ToString().Contains("datetime"))
                             {
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
                             }
                             else if (Type.ToString().Contains("date"))
                             {
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
 
                             }
                             else if (Type.ToString().Contains("time"))
                             {
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
 
                             }
                             else if (Type.ToString().Contains("year"))
                             {
-                        template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
+                                template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
 
                             }
                             else
@@ -2911,7 +3112,8 @@ namespace RebelCmsConsoleApplication
                                 template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
 
                             }
-                        }     else if (GetBlobType().Any(x => Type.Contains(x)))
+                        }
+                        else if (GetBlobType().Any(x => Type.Contains(x)))
                         {
                             template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "Image\").attr(\"src\",data.dataSingle." + LowerCaseFirst(Field) + "Base64String);");
                         }
@@ -2919,7 +3121,7 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine("\t$(\"#" + LowerCaseFirst(Field) + "\").val(data.dataSingle." + LowerCaseFirst(Field) + ");");
                         }
-                      
+
                     }
 
 
@@ -2928,6 +3130,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
                 template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
                 template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
+                template.AppendLine("            $(\"html, body\").animate({ scrollTop: 0 }, \"slow\");");
 
                 template.AppendLine("              }");
                 template.AppendLine("             } else if (status === false) {");
@@ -2984,110 +3187,279 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("         window.open(\"api/" + module.ToLower() + "/" + lcTableName + "\");");
                 template.AppendLine("        }");
                 // update record
-                template.AppendLine("        function updateRecord() {");
-                template.AppendLine("         $.ajax({");
-                template.AppendLine("          type: 'POST',");
-                template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
-                template.AppendLine("          async: false,");
-                template.AppendLine("          data: {");
-                template.AppendLine("           mode: 'update',");
-                template.AppendLine("           leafCheckKey: @navigationModel.LeafCheckKey,");
-                // loop here
-                template.AppendLine("             " + lcTableName + "Key: $(\"#" + lcTableName + "Key\").val(),");
-                // loop not primary
-                foreach (var fieldName in fieldNameList)
+                if (imageUpload)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
-
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+                    template.AppendLine("        function updateRecord() {");
+                    foreach (DescribeTableModel describeTableModel in describeTableModels)
                     {
-                        if (name.Contains("Id"))
+                        string Key = string.Empty;
+                        string Field = string.Empty;
+                        string Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" + name.Replace("Id", "Key") + "\").val(),");
-                        }
-                        else
-                        {
-                            template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
+                            if (Key.Equals("PRI"))
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field.Replace("Id", "Key"))}',$(\"#{LowerCaseFirst(Field.Replace("Id", "Key"))}\").val());");
+
+                            }
+                            else if (Key.Equals("MUL"))
+                            {
+                                if (!Field.Equals("tenantId"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field.Replace("Id", "Key"))}',$(\"#{LowerCaseFirst(Field.Replace("Id", "Key"))}\").val());");
+
+                                }
+
+                            }
+                            else if (GetNumberDataType().Any(x => Type.Contains(x)))
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                            }
+                            else if (Type.Contains("decimal") || Type.Equals("double") || Type.Equals("float"))
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                            }
+                            else if (GetDateDataType().Any(x => Type.Contains(x)))
+                            {
+                                if (Type.ToString().Contains("datetime"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else if (Type.ToString().Contains("date"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else if (Type.ToString().Contains("time"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else if (Type.ToString().Contains("year"))
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                                else
+                                {
+                                    template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                                }
+                            }
+                            else if (GetBlobType().Any(x => Type.Contains(x)))
+                            {
+                                // we check the size more then something ..
+                                template.AppendLine($"var files{UpperCaseFirst(Field)} = $('#{LowerCaseFirst(Field)}')[0].files;");
+                                template.AppendLine("if(files.length > 0 ){");
+                                template.AppendLine("        formData.Append('" + LowerCaseFirst(Field) + "',files" + UpperCaseFirst(Field) + "[0]);");
+                                template.AppendLine("}");
+
+                            }
+                            else
+                            {
+                                template.AppendLine($"        formData.Append('{LowerCaseFirst(Field)}',$(\"#{LowerCaseFirst(Field)}\").val());");
+
+                            }
                         }
                     }
+                    template.AppendLine("         $.ajax({");
+                    template.AppendLine("          type: 'POST',");0
+                    template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
+                    template.AppendLine("           async: false,");
+                    template.AppendLine("           contentType: false,");
+                    template.AppendLine("           processData: false, ");
+                    template.AppendLine("           data: formData,");
+                    template.AppendLine("          statusCode: {");
+                    template.AppendLine("           500: function () {");
+                    template.AppendLine("            Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("           }");
+                    template.AppendLine("          }, beforeSend() {");
+                    template.AppendLine("           console.log(\"loading..\");");
+                    template.AppendLine("          }}).done(function(data)  {");
+                    template.AppendLine("           if (data === void 0) {");
+                    template.AppendLine("            location.href = \"/\";");
+                    template.AppendLine("           }");
+                    template.AppendLine("           let status = data.status;");
+                    template.AppendLine("           let code = data.code;");
+                    template.AppendLine("           if (status) {");
+                    // flip the update button enabbled
+                    // flip the delete button enable
+                    // flip the create button disabled
+                    template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            Swal.fire(\"System\", \"@SharedUtil.RecordUpdated\", 'success')");
+                    template.AppendLine("           } else if (status === false) {");
+                    template.AppendLine("            if (typeof(code) === 'string'){");
+                    template.AppendLine("            @{");
+                    template.AppendLine("             if (sharedUtils.GetRoleId().Equals( (int)AccessEnum.ADMINISTRATOR_ACCESS ))");
+                    template.AppendLine("              {");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"Debugging Admin\", code, \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }");
+                    template.AppendLine("              else");
+                    template.AppendLine("              {");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }");
+                    template.AppendLine("             }");
+                    template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
+                    template.AppendLine("             let timerInterval");
+                    template.AppendLine("             Swal.fire({");
+                    template.AppendLine("              title: 'Auto close alert!',");
+                    template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
+                    template.AppendLine("              timer: 2000,");
+                    template.AppendLine("              timerProgressBar: true,");
+                    template.AppendLine("              didOpen: () => {");
+                    template.AppendLine("              Swal.showLoading();");
+                    template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
+                    template.AppendLine("               timerInterval = setInterval(() => {");
+                    template.AppendLine("               b.textContent = Swal.getTimerLeft()");
+                    template.AppendLine("              }, 100)");
+                    template.AppendLine("             },");
+                    template.AppendLine("             willClose: () => {");
+                    template.AppendLine("              clearInterval(timerInterval)");
+                    template.AppendLine("             }");
+                    template.AppendLine("            }).then((result) => {");
+                    template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
+                    template.AppendLine("               console.log('session out .. ');");
+                    template.AppendLine("               location.href = \"/\";");
+                    template.AppendLine("              }");
+                    template.AppendLine("             });");
+                    template.AppendLine("            } else {");
+                    template.AppendLine("             location.href = \"/\";");
+                    template.AppendLine("            }");
+                    template.AppendLine("           } else {");
+                    template.AppendLine("            location.href = \"/\";");
+                    template.AppendLine("           }");
+                    template.AppendLine("          }).fail(function(xhr)  {");
+                    template.AppendLine("           console.log(xhr.status);");
+                    template.AppendLine("           Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("          }).always(function (){");
+                    template.AppendLine("           console.log(\"always:complete\");    ");
+                    template.AppendLine("          });");
+                    template.AppendLine("        }");
                 }
-                // loop here
-                template.AppendLine("          }, statusCode: {");
-                template.AppendLine("           500: function () {");
-                template.AppendLine("            Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("           }");
-                template.AppendLine("          },");
-                template.AppendLine("          beforeSend: function () {");
-                template.AppendLine("           console.log(\"loading..\");");
-                template.AppendLine("          }}).done(function(data)  {");
-                template.AppendLine("           if (data === void 0) {");
-                template.AppendLine("            location.href = \"/\";");
-                template.AppendLine("           }");
-                template.AppendLine("           let status = data.status;");
-                template.AppendLine("           let code = data.code;");
-                template.AppendLine("           if (status) {");
-                // flip the update button enabbled
-                // flip the delete button enable
-                // flip the create button disabled
-                template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
-                template.AppendLine("            Swal.fire(\"System\", \"@SharedUtil.RecordUpdated\", 'success')");
-                template.AppendLine("           } else if (status === false) {");
-                template.AppendLine("            if (typeof(code) === 'string'){");
-                template.AppendLine("            @{");
-                template.AppendLine("             if (sharedUtils.GetRoleId().Equals( (int)AccessEnum.ADMINISTRATOR_ACCESS ))");
-                template.AppendLine("              {");
-                template.AppendLine("               <text>");
-                template.AppendLine("                Swal.fire(\"Debugging Admin\", code, \"error\");");
-                template.AppendLine("               </text>");
-                template.AppendLine("              }");
-                template.AppendLine("              else");
-                template.AppendLine("              {");
-                template.AppendLine("               <text>");
-                template.AppendLine("                Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("               </text>");
-                template.AppendLine("              }");
-                template.AppendLine("             }");
-                template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("             let timerInterval");
-                template.AppendLine("             Swal.fire({");
-                template.AppendLine("              title: 'Auto close alert!',");
-                template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
-                template.AppendLine("              timer: 2000,");
-                template.AppendLine("              timerProgressBar: true,");
-                template.AppendLine("              didOpen: () => {");
-                template.AppendLine("              Swal.showLoading();");
-                template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
-                template.AppendLine("               timerInterval = setInterval(() => {");
-                template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("              }, 100)");
-                template.AppendLine("             },");
-                template.AppendLine("             willClose: () => {");
-                template.AppendLine("              clearInterval(timerInterval)");
-                template.AppendLine("             }");
-                template.AppendLine("            }).then((result) => {");
-                template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
-                template.AppendLine("               console.log('session out .. ');");
-                template.AppendLine("               location.href = \"/\";");
-                template.AppendLine("              }");
-                template.AppendLine("             });");
-                template.AppendLine("            } else {");
-                template.AppendLine("             location.href = \"/\";");
-                template.AppendLine("            }");
-                template.AppendLine("           } else {");
-                template.AppendLine("            location.href = \"/\";");
-                template.AppendLine("           }");
-                template.AppendLine("          }).fail(function(xhr)  {");
-                template.AppendLine("           console.log(xhr.status);");
-                template.AppendLine("           Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("          }).always(function (){");
-                template.AppendLine("           console.log(\"always:complete\");    ");
-                template.AppendLine("          });");
-                template.AppendLine("        }");
+                else
+                {
 
+
+                    template.AppendLine("        function updateRecord() {");
+                    template.AppendLine("         $.ajax({");
+                    template.AppendLine("          type: 'POST',");
+                    template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableName + "\",");
+                    template.AppendLine("          async: false,");
+                    template.AppendLine("          data: {");
+                    template.AppendLine("           mode: 'update',");
+                    template.AppendLine("           leafCheckKey: @navigationModel.LeafCheckKey,");
+                    // loop here
+                    template.AppendLine("             " + lcTableName + "Key: $(\"#" + lcTableName + "Key\").val(),");
+                    // loop not primary
+                    foreach (var fieldName in fieldNameList)
+                    {
+                        var name = string.Empty;
+                        if (fieldName != null)
+                            name = fieldName;
+
+                        if (!GetHiddenField().Any(x => name.Contains(x)))
+                        {
+                            if (name.Contains("Id"))
+                            {
+                                template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" + name.Replace("Id", "Key") + "\").val(),");
+                            }
+                            else
+                            {
+                                template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
+                            }
+                        }
+                    }
+                    // loop here
+                    template.AppendLine("          }, statusCode: {");
+                    template.AppendLine("           500: function () {");
+                    template.AppendLine("            Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("           }");
+                    template.AppendLine("          },");
+                    template.AppendLine("          beforeSend: function () {");
+                    template.AppendLine("           console.log(\"loading..\");");
+                    template.AppendLine("          }}).done(function(data)  {");
+                    template.AppendLine("           if (data === void 0) {");
+                    template.AppendLine("            location.href = \"/\";");
+                    template.AppendLine("           }");
+                    template.AppendLine("           let status = data.status;");
+                    template.AppendLine("           let code = data.code;");
+                    template.AppendLine("           if (status) {");
+                    // flip the update button enabbled
+                    // flip the delete button enable
+                    // flip the create button disabled
+                    template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
+                    template.AppendLine("            Swal.fire(\"System\", \"@SharedUtil.RecordUpdated\", 'success')");
+                    template.AppendLine("           } else if (status === false) {");
+                    template.AppendLine("            if (typeof(code) === 'string'){");
+                    template.AppendLine("            @{");
+                    template.AppendLine("             if (sharedUtils.GetRoleId().Equals( (int)AccessEnum.ADMINISTRATOR_ACCESS ))");
+                    template.AppendLine("              {");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"Debugging Admin\", code, \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }");
+                    template.AppendLine("              else");
+                    template.AppendLine("              {");
+                    template.AppendLine("               <text>");
+                    template.AppendLine("                Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("               </text>");
+                    template.AppendLine("              }");
+                    template.AppendLine("             }");
+                    template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
+                    template.AppendLine("             let timerInterval");
+                    template.AppendLine("             Swal.fire({");
+                    template.AppendLine("              title: 'Auto close alert!',");
+                    template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
+                    template.AppendLine("              timer: 2000,");
+                    template.AppendLine("              timerProgressBar: true,");
+                    template.AppendLine("              didOpen: () => {");
+                    template.AppendLine("              Swal.showLoading();");
+                    template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
+                    template.AppendLine("               timerInterval = setInterval(() => {");
+                    template.AppendLine("               b.textContent = Swal.getTimerLeft()");
+                    template.AppendLine("              }, 100)");
+                    template.AppendLine("             },");
+                    template.AppendLine("             willClose: () => {");
+                    template.AppendLine("              clearInterval(timerInterval)");
+                    template.AppendLine("             }");
+                    template.AppendLine("            }).then((result) => {");
+                    template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
+                    template.AppendLine("               console.log('session out .. ');");
+                    template.AppendLine("               location.href = \"/\";");
+                    template.AppendLine("              }");
+                    template.AppendLine("             });");
+                    template.AppendLine("            } else {");
+                    template.AppendLine("             location.href = \"/\";");
+                    template.AppendLine("            }");
+                    template.AppendLine("           } else {");
+                    template.AppendLine("            location.href = \"/\";");
+                    template.AppendLine("           }");
+                    template.AppendLine("          }).fail(function(xhr)  {");
+                    template.AppendLine("           console.log(xhr.status);");
+                    template.AppendLine("           Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
+                    template.AppendLine("          }).always(function (){");
+                    template.AppendLine("           console.log(\"always:complete\");    ");
+                    template.AppendLine("          });");
+                    template.AppendLine("        }");
+                }
                 // delete record
                 template.AppendLine("        function deleteRecord() { ");
                 template.AppendLine("         Swal.fire({");
@@ -3107,8 +3479,8 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("            data: {");
                 template.AppendLine("             mode: 'delete',");
                 template.AppendLine("             leafCheckKey: @navigationModel.LeafCheckKey,");
-                if(primaryKey!= null)
-                template.AppendLine("             " + LowerCaseFirst(primaryKey.Replace("Id","Key"))+ ": $(\"#" + LowerCaseFirst(primaryKey.Replace("Id","Key")) + "\").val()");
+                if (primaryKey != null)
+                    template.AppendLine("             " + LowerCaseFirst(primaryKey.Replace("Id", "Key")) + ": $(\"#" + LowerCaseFirst(primaryKey.Replace("Id", "Key")) + "\").val()");
                 template.AppendLine("            }, statusCode: {");
                 template.AppendLine("             500: function () {");
                 template.AppendLine("              Swal.fire(\"System Error\", \"@SharedUtil.UserErrorNotification\", \"error\");");
@@ -3136,7 +3508,7 @@ namespace RebelCmsConsoleApplication
                         name = fieldName;
 
 
-                     if (name.Contains("Id"))
+                    if (name.Contains("Id"))
                     {
                         template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
                     }
@@ -5073,16 +5445,17 @@ namespace RebelCmsConsoleApplication
                         {
                             template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]),");
                         }
-                      
 
-                    }  else if (GetBlobType().Any(x => Type.Contains(x)))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
-                        }
-                        else
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
-                        }
+
+                    }
+                    else if (GetBlobType().Any(x => Type.Contains(x)))
+                    {
+                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
+                    }
+                    else
+                    {
+                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
+                    }
                 }
                 template.AppendLine("});");
                 template.AppendLine("                    }");
@@ -5361,7 +5734,7 @@ namespace RebelCmsConsoleApplication
 
                 // we cannot using  Model.field = "value" as using init in the model 
 
-                template.AppendLine(lcTableName+"Model = new "+ucTableName+"Model() { ");
+                template.AppendLine(lcTableName + "Model = new " + ucTableName + "Model() { ");
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
                     string Key = string.Empty;
