@@ -176,7 +176,7 @@ else
             File.Delete(fileNameMasterDetailPages);
 
         using FileStream fileStreamPages = File.Create(path + "/" + fileNameMasterDetailPages);
-        fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterDetailPages(tableName, detailTableName, module)));
+        fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterAndDetail(tableName, detailTableName, module)));
 
         // there is another one .. for listing purpose  
     }
