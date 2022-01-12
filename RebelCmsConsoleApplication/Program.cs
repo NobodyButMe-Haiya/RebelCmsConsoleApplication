@@ -81,19 +81,19 @@ if (string.IsNullOrEmpty(detailTableName))
             File.Delete(fileNameController);
 
         using FileStream fileStreamController = File.Create(path + "/" + fileNameController);
-        fileStreamController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(tableName, module)));
+        fileStreamController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module,tableName)));
 
         if (File.Exists(fileNameModel))
             File.Delete(fileNameModel);
 
         using FileStream fileStreamModel = File.Create(path + "/" + fileNameModel);
-        fileStreamModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(tableName, module)));
+        fileStreamModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module, tableName)));
 
         if (File.Exists(fileNameRepository))
             File.Delete(fileNameRepository);
 
         using FileStream fileStreamRepository = File.Create(path + "/" + fileNameRepository);
-        fileStreamRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(tableName, module)));
+        fileStreamRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module, tableName)));
 
         if (File.Exists(fileNamePages))
             File.Delete(fileNamePages);
@@ -104,12 +104,12 @@ if (string.IsNullOrEmpty(detailTableName))
         var data = codeGenerator.GetTableStructure(tableName);
         if (data.Count < 6)
         {
-            fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GeneratePages(tableName, module)));
+            fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GeneratePages(module, tableName)));
         }
         else
         {
 
-            fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GeneratePagesFormAndGrid(tableName, module)));
+            fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GeneratePagesFormAndGrid(module, tableName)));
         }
 
 
@@ -137,46 +137,46 @@ else
             File.Delete(fileNameMasterController);
 
         using FileStream fileStreamMasterController = File.Create(path + "/" + fileNameMasterController);
-        fileStreamMasterController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(tableName, module)));
+        fileStreamMasterController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName)));
 
         if (File.Exists(fileNameDetailController))
             File.Delete(fileNameDetailController);
 
         using FileStream fileStreamDetailController = File.Create(path + "/" + fileNameDetailController);
-        fileStreamDetailController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(detailTableName, module, tableName)));
+        fileStreamDetailController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName,detailTableName)));
 
 
         if (File.Exists(fileNameMasterModel))
             File.Delete(fileNameMasterModel);
 
         using FileStream fileStreamMasterModel = File.Create(path + "/" + fileNameMasterModel);
-        fileStreamMasterModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(tableName, module)));
+        fileStreamMasterModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(tableName, module,detailTableName)));
 
         if (File.Exists(fileNameDetailModel))
             File.Delete(fileNameDetailModel);
 
         using FileStream fileStreamDetailModel = File.Create(path + "/" + fileNameDetailModel);
-        fileStreamDetailModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(detailTableName, module)));
+        fileStreamDetailModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,detailTableName)));
 
 
         if (File.Exists(fileNameMasterRepository))
             File.Delete(fileNameMasterRepository);
 
         using FileStream fileStreamMasterRepository = File.Create(path + "/" + fileNameMasterRepository);
-        fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(tableName, module)));
+        fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName)));
 
         if (File.Exists(fileNameDetailRepository))
             File.Delete(fileNameDetailRepository);
 
         using FileStream fileStreamDetailRepository = File.Create(path + "/" + fileNameDetailRepository);
-        fileStreamDetailRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(detailTableName, module, tableName)));
+        fileStreamDetailRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName)));
 
 
         if (File.Exists(fileNameMasterDetailPages))
             File.Delete(fileNameMasterDetailPages);
 
         using FileStream fileStreamPages = File.Create(path + "/" + fileNameMasterDetailPages);
-        fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterAndDetail(tableName, detailTableName, module)));
+        fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterAndDetail(module,tableName,detailTableName)));
 
         // there is another one .. for listing purpose  
     }

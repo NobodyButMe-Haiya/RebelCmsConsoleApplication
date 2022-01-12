@@ -188,13 +188,7 @@ namespace RebelCmsConsoleApplication
             /// <param name="tableName"></param>
             /// <param name="module"></param>
             /// <returns></returns>
-            public string GeneratePagesView(string tableName, string module)
-            {
-                StringBuilder template = new();
-
-                return template.ToString();
-            }
-            public string GenerateModel(string tableName, string module)
+            public string GenerateModel(string module, string tableName, string detailTableName="")
             {
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
                 var lcTableName = GetStringNoUnderScore(tableName, (int)TextCase.LcWords);
@@ -280,7 +274,7 @@ namespace RebelCmsConsoleApplication
 
                 return template.ToString();
             }
-            public string GenerateController(string tableName, string module, string tableNameMaster = "")
+            public string GenerateController(string module, string tableName, string tableNameMaster = "")
             {
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
                 var lcTableName = GetStringNoUnderScore(tableName, (int)TextCase.LcWords);
@@ -690,7 +684,7 @@ namespace RebelCmsConsoleApplication
 
                 return template.ToString();
             }
-            public string GeneratePages(string tableName, string module, string tableNameMaster = "")
+            public string GeneratePages(string module, string tableName)
             {
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
                 var lcTableName = GetStringNoUnderScore(tableName, (int)TextCase.LcWords);
@@ -1852,7 +1846,7 @@ namespace RebelCmsConsoleApplication
 
                 return template.ToString();
             }
-            public string GeneratePagesFormAndGrid(string tableName, string module)
+            public string GeneratePagesFormAndGrid(string module, string tableName)
             {
                 var primaryKey = GetPrimayKeyTableName(tableName);
 
@@ -3647,7 +3641,7 @@ namespace RebelCmsConsoleApplication
             /// <param name="tableName"></param>
             /// <param name="module"></param>
             /// <returns></returns>
-            public string GenerateMasterAndDetail(string tableName,string tableNameDetail, string module)
+            public string GenerateMasterAndDetail(string module, string tableName,string tableNameDetail)
             {
                 var primaryKey = GetPrimayKeyTableName(tableName);
 
@@ -6247,7 +6241,7 @@ namespace RebelCmsConsoleApplication
 
                 return template.ToString();
             }
-            public string GenerateRepository(string tableName, string module, string tableNameMaster = "")
+            public string GenerateRepository(string module, string tableName)
             {
 
                 var primaryKey = GetPrimayKeyTableName(tableName);
@@ -6427,306 +6421,7 @@ namespace RebelCmsConsoleApplication
 
                 template.AppendLine("        }");
 
-                if (!string.IsNullOrEmpty(tableNameMaster))
-                {
-                    var ucTableNameMaster = GetStringNoUnderScore(tableNameMaster, (int)TextCase.UcWords);
-                    var lcTableNameMaster = GetStringNoUnderScore(tableNameMaster, (int)TextCase.LcWords);
-
-                    List<DescribeTableModel> describeTableMasterModels = GetTableStructure(tableNameMaster);
-                    List<string?> fieldNameMasterList = describeTableMasterModels.Select(x => x.FieldValue).ToList();
-                    var sqlFieldNameMaster = String.Join(',', fieldNameMasterList);
-                    List<string?> fieldNameMasterParameter = new();
-                    foreach (var fieldName in fieldNameMasterList)
-                    {
-                        if (fieldName != null)
-                        {
-                            if (fieldName.Equals(lcTableName + "Id"))
-                            {
-                                fieldNameMasterParameter.Add("null");
-                            }
-                            else
-                            {
-                                fieldNameMasterParameter.Add("@" + fieldName);
-                            }
-                        }
-                    };
-                    var sqlBindParamFieldNameMaster = String.Join(',', fieldNameMasterParameter);
-                    StringBuilder loopColumnDetail = new();
-                    foreach (DescribeTableModel describeTableModel in describeTableModels)
-                    {
-                        string Key = string.Empty;
-                        string Field = string.Empty;
-                        string Type = string.Empty;
-                        if (describeTableModel.KeyValue != null)
-                            Key = describeTableModel.KeyValue;
-                        if (describeTableModel.FieldValue != null)
-                            Field = describeTableModel.FieldValue;
-                        if (describeTableModel.TypeValue != null)
-                            Type = describeTableModel.TypeValue;
-
-                        List<string> keyValue = new() { "PRI", "MUL" };
-                        if (keyValue.Contains(Key))
-                        {
-                            if (Key != "PRI")
-                            {
-                                if (Field.Equals("tenantId"))
-                                {
-                                    loopColumnDetail.AppendLine("                    new ()");
-                                    loopColumnDetail.AppendLine("                    {");
-                                    loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnDetail.AppendLine("                        Value = _sharedUtil.GetTenantId()");
-                                    loopColumnDetail.AppendLine("                    },");
-                                }
-                                else
-                                {
-                                    // so we have foreign key here so .. master need to link with the detail
-                                    // what if we have mutiple master / detail  / detail / detail ? Cleanup your design layout
-                                    var masterPrimaryKey = GetPrimayKeyTableName(tableNameMaster);
-                                    if (masterPrimaryKey != null)
-                                    {
-                                        if (masterPrimaryKey.Equals(Field, StringComparison.Ordinal))
-                                        {
-                                            loopColumnDetail.AppendLine("                    new ()");
-                                            loopColumnDetail.AppendLine("                    {");
-                                            loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                            loopColumnDetail.AppendLine("                        Value = lastInsertKey");
-                                            loopColumnDetail.AppendLine("                    },");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        loopColumnDetail.AppendLine("                    new ()");
-                                        loopColumnDetail.AppendLine("                    {");
-                                        loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                        loopColumnDetail.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field.Replace("Id", "Key")));
-                                        loopColumnDetail.AppendLine("                    },");
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (Field.Equals("isDelete"))
-                            {
-                                loopColumnDetail.AppendLine("                    new ()");
-                                loopColumnDetail.AppendLine("                    {");
-                                loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                loopColumnDetail.AppendLine("                        Value = 0");
-                                loopColumnDetail.AppendLine("                    },");
-                            }
-                            else if (Field.Equals("executeBy"))
-                            {
-                                loopColumnDetail.AppendLine("                    new ()");
-                                loopColumnDetail.AppendLine("                    {");
-                                loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                loopColumnDetail.AppendLine("                        Value = _sharedUtil.GetUserName()");
-                                loopColumnDetail.AppendLine("                    },");
-                            }
-                            else
-                            {
-                                if (Type.ToString().Contains("datetime"))
-                                {
-                                    loopColumnDetail.AppendLine("                    new ()");
-                                    loopColumnDetail.AppendLine("                    {");
-                                    loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnDetail.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"yyyy-MM-dd HH:mm\")");
-                                    loopColumnDetail.AppendLine("                    },");
-                                }
-                                else if (Type.ToString().Contains("date"))
-                                {
-                                    loopColumnDetail.AppendLine("                    new ()");
-                                    loopColumnDetail.AppendLine("                    {");
-                                    loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnDetail.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"yyyy-MM-dd\")");
-                                    loopColumnDetail.AppendLine("                    },");
-                                }
-                                else if (Type.ToString().Contains("time"))
-                                {
-                                    loopColumnDetail.AppendLine("                    new ()");
-                                    loopColumnDetail.AppendLine("                    {");
-                                    loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumn.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"HH:mm\")");
-                                    loopColumn.AppendLine("                    },");
-                                }
-                                else
-                                {
-                                    loopColumnDetail.AppendLine("                    new ()");
-                                    loopColumnDetail.AppendLine("                    {");
-                                    loopColumnDetail.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnDetail.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field));
-                                    loopColumnDetail.AppendLine("                    },");
-                                }
-                            }
-                        }
-                    }
-
-                    StringBuilder loopColumnMaster = new();
-                    foreach (DescribeTableModel describeTableModel in describeTableMasterModels)
-                    {
-                        string Key = string.Empty;
-                        string Field = string.Empty;
-                        string Type = string.Empty;
-                        if (describeTableModel.KeyValue != null)
-                            Key = describeTableModel.KeyValue;
-                        if (describeTableModel.FieldValue != null)
-                            Field = describeTableModel.FieldValue;
-                        if (describeTableModel.TypeValue != null)
-                            Type = describeTableModel.TypeValue;
-
-                        List<string> keyValue = new() { "PRI", "MUL" };
-                        if (keyValue.Contains(Key))
-                        {
-                            if (Key != "PRI")
-                            {
-                                if (Field.Equals("tenantId"))
-                                {
-                                    loopColumnMaster.AppendLine("                    new ()");
-                                    loopColumnMaster.AppendLine("                    {");
-                                    loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnMaster.AppendLine("                        Value = _sharedUtil.GetTenantId()");
-                                    loopColumnMaster.AppendLine("                    },");
-                                }
-                                else
-                                {
-
-                                    loopColumnMaster.AppendLine("                    new ()");
-                                    loopColumnMaster.AppendLine("                    {");
-                                    loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnMaster.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field.Replace("Id", "Key")));
-                                    loopColumnMaster.AppendLine("                    },");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (Field.Equals("isDelete"))
-                            {
-                                loopColumnMaster.AppendLine("                    new ()");
-                                loopColumnMaster.AppendLine("                    {");
-                                loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                loopColumnMaster.AppendLine("                        Value = 0");
-                                loopColumnMaster.AppendLine("                    },");
-                            }
-                            else if (Field.Equals("executeBy"))
-                            {
-                                loopColumnMaster.AppendLine("                    new ()");
-                                loopColumnMaster.AppendLine("                    {");
-                                loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                loopColumnMaster.AppendLine("                        Value = _sharedUtil.GetUserName()");
-                                loopColumnMaster.AppendLine("                    },");
-                            }
-                            else
-                            {
-                                if (Type.ToString().Contains("datetime"))
-                                {
-                                    loopColumnMaster.AppendLine("                    new ()");
-                                    loopColumnMaster.AppendLine("                    {");
-                                    loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnMaster.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"yyyy-MM-dd HH:mm\")");
-                                    loopColumnMaster.AppendLine("                    },");
-                                }
-                                else if (Type.ToString().Contains("date"))
-                                {
-                                    loopColumn.AppendLine("                    new ()");
-                                    loopColumnMaster.AppendLine("                    {");
-                                    loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnMaster.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"yyyy-MM-dd\")");
-                                    loopColumnMaster.AppendLine("                    },");
-                                }
-                                else if (Type.ToString().Contains("time"))
-                                {
-                                    loopColumnMaster.AppendLine("                    new ()");
-                                    loopColumnMaster.AppendLine("                    {");
-                                    loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnMaster.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field) + ".ToString(\"HH:mm\")");
-                                    loopColumnMaster.AppendLine("                    },");
-                                }
-                                else
-                                {
-                                    loopColumnMaster.AppendLine("                    new ()");
-                                    loopColumnMaster.AppendLine("                    {");
-                                    loopColumnMaster.AppendLine("                        Key = \"@" + Field + "\",");
-                                    loopColumnMaster.AppendLine("                        Value = " + lcTableName + "Model." + UpperCaseFirst(Field));
-                                    loopColumnMaster.AppendLine("                    },");
-                                }
-                            }
-                        }
-                    }
-
-                    template.AppendLine("        public int CreateWithMaster(" + ucTableName + "Model " + lcTableName + "Model," + ucTableNameMaster + "Model " + lcTableNameMaster + "Model)");
-                    template.AppendLine("        {");
-                    // insert the master table first 
-                    template.AppendLine("            var lastInsertKey = 0;");
-                    template.AppendLine("            string sql = string.Empty;");
-                    template.AppendLine("            List<ParameterModel> parameterModels = new ();");
-                    template.AppendLine("            using MySqlConnection connection = SharedUtil.GetConnection();");
-                    template.AppendLine("            try");
-                    template.AppendLine("            {");
-                    template.AppendLine("                connection.Open();");
-                    template.AppendLine("                MySqlTransaction mySqlTransaction = connection.BeginTransaction();");
-                    template.AppendLine("                sql += @\"INSERT INTO " + tableNameMaster + " (" + sqlFieldNameMaster + ") VALUES (" + sqlBindParamFieldNameMaster + ");\";");
-                    template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
-                    template.AppendLine("                parameterModels = new List<ParameterModel>");
-
-                    template.AppendLine("                {");
-                    // loop start
-                    template.AppendLine(loopColumnMaster.ToString().TrimEnd(','));
-                    // loop end
-                    template.AppendLine("                };");
-                    template.AppendLine("                foreach (ParameterModel parameter in parameterModels)");
-                    template.AppendLine("                {");
-                    template.AppendLine("                   mySqlCommand.Parameters.AddWithValue(parameter.Key, parameter.Value);");
-                    template.AppendLine("                }");
-                    template.AppendLine("                mySqlCommand.ExecuteNonQuery();");
-                    template.AppendLine("                mySqlTransaction.Commit();");
-                    template.AppendLine("                lastInsertKey = (int)mySqlCommand.LastInsertedId;");
-                    template.AppendLine("                mySqlCommand.Dispose();");
-                    template.AppendLine("            }");
-                    template.AppendLine("            catch (MySqlException ex)");
-                    template.AppendLine("            {");
-                    template.AppendLine("                System.Diagnostics.Debug.WriteLine(ex.Message);");
-                    template.AppendLine("                _sharedUtil.SetQueryException(SharedUtil.GetSqlSessionValue(sql, parameterModels), ex);");
-                    template.AppendLine("                throw new Exception(ex.Message);");
-                    template.AppendLine("            }");
-
-
-                    // insert the detail table 
-                    template.AppendLine("            string sql = string.Empty;");
-                    template.AppendLine("            List<ParameterModel> parameterModels = new ();");
-                    template.AppendLine("            using MySqlConnection connection = SharedUtil.GetConnection();");
-                    template.AppendLine("            try");
-                    template.AppendLine("            {");
-                    template.AppendLine("                connection.Open();");
-                    template.AppendLine("                MySqlTransaction mySqlTransaction = connection.BeginTransaction();");
-                    template.AppendLine("                sql += @\"INSERT INTO " + tableName + " (" + sqlFieldName + ") VALUES (" + sqlBindParamFieldName + ");\";");
-                    template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
-                    template.AppendLine("                parameterModels = new List<ParameterModel>");
-
-                    template.AppendLine("                {");
-                    // loop start
-                    template.AppendLine(loopColumnDetail.ToString().TrimEnd(','));
-                    // loop end
-                    template.AppendLine("                };");
-                    template.AppendLine("                foreach (ParameterModel parameter in parameterModels)");
-                    template.AppendLine("                {");
-                    template.AppendLine("                   mySqlCommand.Parameters.AddWithValue(parameter.Key, parameter.Value);");
-                    template.AppendLine("                }");
-                    template.AppendLine("                mySqlCommand.ExecuteNonQuery();");
-                    template.AppendLine("                mySqlTransaction.Commit();");
-                    template.AppendLine("                lastInsertKey = (int)mySqlCommand.LastInsertedId;");
-                    template.AppendLine("                mySqlCommand.Dispose();");
-                    template.AppendLine("            }");
-                    template.AppendLine("            catch (MySqlException ex)");
-                    template.AppendLine("            {");
-                    template.AppendLine("                System.Diagnostics.Debug.WriteLine(ex.Message);");
-                    template.AppendLine("                _sharedUtil.SetQueryException(SharedUtil.GetSqlSessionValue(sql, parameterModels), ex);");
-                    template.AppendLine("                throw new Exception(ex.Message);");
-                    template.AppendLine("            }");
-
-                    template.AppendLine("            return lastInsertKey;");
-                    template.AppendLine("}");
-
-                }
+           
                 template.AppendLine("        public List<" + ucTableName + "Model> Read()");
                 template.AppendLine("        {");
                 template.AppendLine("            List<" + ucTableName + "Model> " + lcTableName + "Models = new();");
