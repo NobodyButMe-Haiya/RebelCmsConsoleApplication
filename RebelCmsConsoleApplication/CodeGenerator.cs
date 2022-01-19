@@ -1435,7 +1435,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("              }");
                 template.AppendLine("             }");
                 template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("             let timerInterval;");
+                template.AppendLine("             let timerInterval=0;");
                 template.AppendLine("             Swal.fire({");
                 template.AppendLine("              title: 'Auto close alert!',");
                 template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -1445,11 +1445,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                Swal.showLoading();");
                 template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                timerInterval = setInterval(() => {");
-                template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("               }, 100)");
+                template.AppendLine("                b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("               }, 100);");
                 template.AppendLine("              },");
                 template.AppendLine("              willClose: () => {");
-                template.AppendLine("               clearInterval(timerInterval)");
+                template.AppendLine("               clearInterval(timerInterval);");
                 template.AppendLine("              }");
                 template.AppendLine("            }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -1524,7 +1524,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -1534,11 +1534,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("              }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -1612,7 +1612,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -1622,10 +1622,10 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
-                template.AppendLine("               willClose: () => { clearInterval(timerInterval) }");
+                template.AppendLine("               willClose: () => { clearInterval(timerInterval); }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
                 template.AppendLine("               console.log('session out .. ');");
@@ -1713,7 +1713,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("              }");
                 template.AppendLine("             }");
                 template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("             let timerInterval");
+                template.AppendLine("             let timerInterval=0;");
                 template.AppendLine("             Swal.fire({");
                 template.AppendLine("              title: 'Auto close alert!',");
                 template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -1723,11 +1723,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("              Swal.showLoading();");
                 template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("               timerInterval = setInterval(() => {");
-                template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("              }, 100)");
+                template.AppendLine("               b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("              }, 100);");
                 template.AppendLine("             },");
                 template.AppendLine("             willClose: () => {");
-                template.AppendLine("              clearInterval(timerInterval)");
+                template.AppendLine("              clearInterval(timerInterval);");
                 template.AppendLine("             }");
                 template.AppendLine("            }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -1798,7 +1798,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -1808,11 +1808,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -2379,7 +2379,7 @@ namespace RebelCmsConsoleApplication
                         }
                     }
                 };
-                template.AppendLine("        function resetForm() {");
+                template.AppendLine("\tfunction resetForm() {");
                 foreach (var fieldName in fieldNameList)
                 {
                     var name = string.Empty;
@@ -2710,7 +2710,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval;");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -2720,11 +2720,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("                Swal.showLoading();");
                     template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("                timerInterval = setInterval(() => {");
-                    template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("               }, 100)");
+                    template.AppendLine("                b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("               }, 100);");
                     template.AppendLine("              },");
                     template.AppendLine("              willClose: () => {");
-                    template.AppendLine("               clearInterval(timerInterval)");
+                    template.AppendLine("               clearInterval(timerInterval);");
                     template.AppendLine("              }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -2843,7 +2843,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval;");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -2853,11 +2853,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("                Swal.showLoading();");
                     template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("                timerInterval = setInterval(() => {");
-                    template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("               }, 100)");
+                    template.AppendLine("                b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("               }, 100);");
                     template.AppendLine("              },");
                     template.AppendLine("              willClose: () => {");
-                    template.AppendLine("               clearInterval(timerInterval)");
+                    template.AppendLine("               clearInterval(timerInterval);");
                     template.AppendLine("              }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -2934,7 +2934,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -2944,11 +2944,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("              }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -3023,7 +3023,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -3033,10 +3033,10 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
-                template.AppendLine("               willClose: () => { clearInterval(timerInterval) }");
+                template.AppendLine("               willClose: () => { clearInterval(timerInterval); }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
                 template.AppendLine("               console.log('session out .. ');");
@@ -3186,7 +3186,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -3196,10 +3196,10 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
-                template.AppendLine("               willClose: () => { clearInterval(timerInterval) }");
+                template.AppendLine("               willClose: () => { clearInterval(timerInterval); }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
                 template.AppendLine("               console.log('session out .. ');");
@@ -3373,7 +3373,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -3383,11 +3383,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              Swal.showLoading();");
                     template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("               timerInterval = setInterval(() => {");
-                    template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("              }, 100)");
+                    template.AppendLine("               b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("              }, 100);");
                     template.AppendLine("             },");
                     template.AppendLine("             willClose: () => {");
-                    template.AppendLine("              clearInterval(timerInterval)");
+                    template.AppendLine("              clearInterval(timerInterval);");
                     template.AppendLine("             }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -3481,7 +3481,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -3491,11 +3491,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              Swal.showLoading();");
                     template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("               timerInterval = setInterval(() => {");
-                    template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("              }, 100)");
+                    template.AppendLine("               b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("              }, 100);");
                     template.AppendLine("             },");
                     template.AppendLine("             willClose: () => {");
-                    template.AppendLine("              clearInterval(timerInterval)");
+                    template.AppendLine("              clearInterval(timerInterval);");
                     template.AppendLine("             }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -3590,11 +3590,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                {");
                 template.AppendLine("                 <text>");
                 template.AppendLine("                  Swal.fire(\"System\", \"@SharedUtil.UserErrorNotification\", \"error\");");
-                template.AppendLine("                 </text>");
+                template.AppendLine("                 </text>"); 
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -3604,11 +3604,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -4402,7 +4402,7 @@ namespace RebelCmsConsoleApplication
                     }
                 };
                 // reset form
-                template.AppendLine("t\function resetForm() {");
+                template.AppendLine("\tfunction resetForm() {");
                 foreach (var fieldName in fieldNameList)
                 {
                     var name = string.Empty;
@@ -4892,7 +4892,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval;");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -4902,11 +4902,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("                Swal.showLoading();");
                     template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("                timerInterval = setInterval(() => {");
-                    template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("               }, 100)");
+                    template.AppendLine("                b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("               }, 100);");
                     template.AppendLine("              },");
                     template.AppendLine("              willClose: () => {");
-                    template.AppendLine("               clearInterval(timerInterval)");
+                    template.AppendLine("               clearInterval(timerInterval);");
                     template.AppendLine("              }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5025,7 +5025,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval;");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5035,11 +5035,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("                Swal.showLoading();");
                     template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("                timerInterval = setInterval(() => {");
-                    template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("               }, 100)");
+                    template.AppendLine("                b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("               }, 100);");
                     template.AppendLine("              },");
                     template.AppendLine("              willClose: () => {");
-                    template.AppendLine("               clearInterval(timerInterval)");
+                    template.AppendLine("               clearInterval(timerInterval);");
                     template.AppendLine("              }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5167,7 +5167,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("              }");
                 template.AppendLine("             }");
                 template.AppendLine("            }else  if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("             let timerInterval;");
+                template.AppendLine("             let timerInterval=0;");
                 template.AppendLine("             Swal.fire({");
                 template.AppendLine("              title: 'Auto close alert!',");
                 template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5177,11 +5177,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                Swal.showLoading();");
                 template.AppendLine("                const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                timerInterval = setInterval(() => {");
-                template.AppendLine("                b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("               }, 100)");
+                template.AppendLine("                b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("               }, 100);");
                 template.AppendLine("              },");
                 template.AppendLine("              willClose: () => {");
-                template.AppendLine("               clearInterval(timerInterval)");
+                template.AppendLine("               clearInterval(timerInterval);");
                 template.AppendLine("              }");
                 template.AppendLine("            }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5259,7 +5259,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5269,11 +5269,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("              }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5350,7 +5350,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5360,11 +5360,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("              }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5438,7 +5438,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5448,10 +5448,10 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
-                template.AppendLine("               willClose: () => { clearInterval(timerInterval) }");
+                template.AppendLine("               willClose: () => { clearInterval(timerInterval); }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
                 template.AppendLine("               console.log('session out .. ');");
@@ -5603,7 +5603,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5613,10 +5613,10 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
-                template.AppendLine("               willClose: () => { clearInterval(timerInterval) }");
+                template.AppendLine("               willClose: () => { clearInterval(timerInterval); }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
                 template.AppendLine("               console.log('session out .. ');");
@@ -5793,7 +5793,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5803,11 +5803,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              Swal.showLoading();");
                     template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("               timerInterval = setInterval(() => {");
-                    template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("              }, 100)");
+                    template.AppendLine("               b.textContent = Swal.getTimerLeft();") ;
+                    template.AppendLine("              }, 100);");
                     template.AppendLine("             },");
                     template.AppendLine("             willClose: () => {");
-                    template.AppendLine("              clearInterval(timerInterval)");
+                    template.AppendLine("              clearInterval(timerInterval);");
                     template.AppendLine("             }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5901,7 +5901,7 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              }");
                     template.AppendLine("             }");
                     template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                    template.AppendLine("             let timerInterval");
+                    template.AppendLine("             let timerInterval=0;");
                     template.AppendLine("             Swal.fire({");
                     template.AppendLine("              title: 'Auto close alert!',");
                     template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -5911,11 +5911,11 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("              Swal.showLoading();");
                     template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
                     template.AppendLine("               timerInterval = setInterval(() => {");
-                    template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                    template.AppendLine("              }, 100)");
+                    template.AppendLine("               b.textContent = Swal.getTimerLeft();");
+                    template.AppendLine("              }, 100);");
                     template.AppendLine("             },");
                     template.AppendLine("             willClose: () => {");
-                    template.AppendLine("              clearInterval(timerInterval)");
+                    template.AppendLine("              clearInterval(timerInterval);");
                     template.AppendLine("             }");
                     template.AppendLine("            }).then((result) => {");
                     template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -5963,11 +5963,11 @@ namespace RebelCmsConsoleApplication
                         if (name.Contains("Id"))
                         {
                             if (name != lcTableName + "Id")
-                                template.AppendLine($"           {name.Replace("Id", "Key")}: $(\"#{name.Replace("Id", "Key")}-\" + {lcTableName}Key).val(),");
+                                template.AppendLine($"           {name.Replace("Id", "Key")}: $(\"#{name.Replace("Id", "Key")}-\" + {lcTableDetailName}Key).val(),");
                         }
                         else
                         {
-                            template.AppendLine($"           {name}: $(\"#{name}-\" + {lcTableName}Key).val(),");
+                            template.AppendLine($"           {name}: $(\"#{name}-\" + {lcTableDetailName}Key).val(),");
                         }
                     }
                 }
@@ -6004,7 +6004,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("              }");
                 template.AppendLine("             }");
                 template.AppendLine("            }else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("             let timerInterval");
+                template.AppendLine("             let timerInterval=0;");
                 template.AppendLine("             Swal.fire({");
                 template.AppendLine("              title: 'Auto close alert!',");
                 template.AppendLine("              html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -6014,11 +6014,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("              Swal.showLoading();");
                 template.AppendLine("               const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("               timerInterval = setInterval(() => {");
-                template.AppendLine("               b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("              }, 100)");
+                template.AppendLine("               b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("              }, 100);");
                 template.AppendLine("             },");
                 template.AppendLine("             willClose: () => {");
-                template.AppendLine("              clearInterval(timerInterval)");
+                template.AppendLine("              clearInterval(timerInterval);");
                 template.AppendLine("             }");
                 template.AppendLine("            }).then((result) => {");
                 template.AppendLine("              if (result.dismiss === Swal.DismissReason.timer) {");
@@ -6117,7 +6117,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -6127,11 +6127,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
@@ -6212,7 +6212,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                }");
                 template.AppendLine("               }");
                 template.AppendLine("              } else if (parseInt(code) === parseInt(@((int)ReturnCodeEnum.ACCESS_DENIED) )) {");
-                template.AppendLine("               let timerInterval;");
+                template.AppendLine("               let timerInterval=0;");
                 template.AppendLine("               Swal.fire({");
                 template.AppendLine("                title: 'Auto close alert!',");
                 template.AppendLine("                html: 'Session Out .Pease Re-login.I will close in <b></b> milliseconds.',");
@@ -6222,11 +6222,11 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                 Swal.showLoading();");
                 template.AppendLine("                 const b = Swal.getHtmlContainer().querySelector('b');");
                 template.AppendLine("                 timerInterval = setInterval(() => {");
-                template.AppendLine("                 b.textContent = Swal.getTimerLeft()");
-                template.AppendLine("                }, 100)");
+                template.AppendLine("                 b.textContent = Swal.getTimerLeft();");
+                template.AppendLine("                }, 100);");
                 template.AppendLine("               },");
                 template.AppendLine("               willClose: () => {");
-                template.AppendLine("                clearInterval(timerInterval)");
+                template.AppendLine("                clearInterval(timerInterval);");
                 template.AppendLine("               }");
                 template.AppendLine("             }).then((result) => {");
                 template.AppendLine("               if (result.dismiss === Swal.DismissReason.timer) {");
