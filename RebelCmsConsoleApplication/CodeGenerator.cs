@@ -192,14 +192,28 @@ namespace RebelCmsConsoleApplication
             /// <param name="tableName"></param>
             /// <param name="module"></param>
             /// <returns></returns>
-            public string GenerateModel(string module, string tableName, string detailTableName = "")
+            public string GenerateModel(string module, string tableName, bool readOnly = false,string detailTableName = "")
             {
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
                 var lcTableName = GetStringNoUnderScore(tableName, (int)TextCase.LcWords);
                 List<DescribeTableModel> describeTableModels = GetTableStructure(tableName);
+
+                List<DescribeTableModel> describeTableDetailModels = new();
+                if(string.IsNullOrEmpty(detailTableName))
+                    describeTableDetailModels = GetTableStructure(detailTableName);
+
                 StringBuilder template = new();
                 template.AppendLine($"namespace RebelCmsTemplate.Models.{UpperCaseFirst(module)};");
-                template.AppendLine("public class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
+                // if got detail table should at least have partial class to bring information if wanted to grid info
+                if (readOnly)
+                {
+                    template.AppendLine("public class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
+
+                }
+                else
+                {
+                    template.AppendLine("public class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
+                }
                 template.AppendLine("{");
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
@@ -272,9 +286,67 @@ namespace RebelCmsConsoleApplication
 
                     }
                 }
+                // this is more on foreign key field name 
+                if (readOnly)
+                {
+                    template.AppendLine("public partial class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
+                    template.AppendLine("{");
+                    foreach (DescribeTableModel describeTableModel in describeTableModels)
+                    {
+                        string Key = string.Empty;
+                        string Field = string.Empty;
+                        string Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+                        if (Key.Equals("MUL"))
+                        {
+                            if (Field != null)
+                            {
+                                // get the foreign key name
+                                template.AppendLine("\tpublic string? " + GetLabelForComboBoxGrid(tableName, Field) + " { get; init; } ");
+                            }
+                        }
+                    }
+                    // there may be optional detail master detail so
+
+                    if (!string.IsNullOrEmpty(detailTableName))
+                    {
+                        foreach (DescribeTableModel describeTableModel in describeTableDetailModels)
+                        {
+                            string Key = string.Empty;
+                            string Field = string.Empty;
+                            string Type = string.Empty;
+                            if (describeTableModel.KeyValue != null)
+                                Key = describeTableModel.KeyValue;
+                            if (describeTableModel.FieldValue != null)
+                                Field = describeTableModel.FieldValue;
+                            if (describeTableModel.TypeValue != null)
+                                Type = describeTableModel.TypeValue;
+
+                            if (Key.Equals("MUL"))
+                            {
+                                if (Field != null)
+                                {
+                                    // get the foreign key name
+                                    template.AppendLine("\tpublic string? " + GetLabelForComboBoxGrid(detailTableName, Field) + " { get; init; } ");
+                                }
+                            }
+                        }
+                    }
+                    template.AppendLine("}");
+
+
+                }
+
 
 
                 template.AppendLine("}");
+
 
                 return template.ToString();
             }
@@ -4551,7 +4623,7 @@ namespace RebelCmsConsoleApplication
                 // start row master
                 // read only max 6 
                 template.AppendLine("        function template(" + oneLineTemplateField.ToString().TrimEnd(',') + ") {");
-           
+
                 template.AppendLine("            let template =  \"\" +");
                 template.AppendLine($"                \"<tr id='{lcTableName}-\" + {lcTableName}Key + \"'>\" +");
                 int m = 1;
@@ -4578,7 +4650,7 @@ namespace RebelCmsConsoleApplication
                                     if (Key.Equals("MUL"))
                                     {
                                         // this is a a bit hard upon your need to change a lot here ! but better manually 
-                                        template.AppendLine("\"<td>\"+" + LowerCaseFirst(Field.Replace("Id","")) + "+\"</td>\" +");
+                                        template.AppendLine("\"<td>\"+" + LowerCaseFirst(Field.Replace("Id", "")) + "+\"</td>\" +");
                                     }
                                     else
                                     {
@@ -7147,6 +7219,36 @@ namespace RebelCmsConsoleApplication
                         if (GetStringDataType().Any(x => Type.Contains(x)))
                         {
                             name = SplitToSpaceLabel(Field);
+                            break;
+                        }
+                    }
+                }
+
+                return name;
+            }
+            public string? GetLabelForComboBoxGrid(string tableName, string field)
+            {
+                string name = string.Empty;
+                var foreignTableName = GetForeignKeyTableName(tableName, field);
+                // we describe the table name to get the any varchar /text which found first . If yes desclare as the name for combo box /select box
+                if (foreignTableName != null)
+                {
+                    var structureModel = GetTableStructure(foreignTableName);
+                    foreach (DescribeTableModel describeTableModel in structureModel)
+                    {
+                        string Key = string.Empty;
+                        string Field = string.Empty;
+                        string Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+                        if (GetStringDataType().Any(x => Type.Contains(x)))
+                        {
+                            name = Field;
                             break;
                         }
                     }
