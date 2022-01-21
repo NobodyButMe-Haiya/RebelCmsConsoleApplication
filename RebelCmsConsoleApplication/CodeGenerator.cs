@@ -187,19 +187,21 @@ namespace RebelCmsConsoleApplication
                 return describeTableModels;
             }
             /// <summary>
-            /// This might be some page preview data and mostly this era prefer using data tables with ajax respond 
+            /// 
             /// </summary>
-            /// <param name="tableName"></param>
             /// <param name="module"></param>
+            /// <param name="tableName"></param>
+            /// <param name="readOnly"></param>
+            /// <param name="detailTableName">Optional future .</param>
             /// <returns></returns>
-            public string GenerateModel(string module, string tableName, bool readOnly = false,string detailTableName = "")
+            public string GenerateModel(string module, string tableName, bool readOnly = false, string detailTableName = "")
             {
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
                 var lcTableName = GetStringNoUnderScore(tableName, (int)TextCase.LcWords);
                 List<DescribeTableModel> describeTableModels = GetTableStructure(tableName);
 
                 List<DescribeTableModel> describeTableDetailModels = new();
-                if(string.IsNullOrEmpty(detailTableName))
+                if (string.IsNullOrEmpty(detailTableName))
                     describeTableDetailModels = GetTableStructure(detailTableName);
 
                 StringBuilder template = new();
@@ -207,7 +209,7 @@ namespace RebelCmsConsoleApplication
                 // if got detail table should at least have partial class to bring information if wanted to grid info
                 if (readOnly)
                 {
-                    template.AppendLine("public class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
+                    template.AppendLine("public partial class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
 
                 }
                 else
@@ -286,7 +288,8 @@ namespace RebelCmsConsoleApplication
 
                     }
                 }
-                // this is more on foreign key field name 
+                // this is more on foreign key field name
+                template.AppendLine("}");
                 if (readOnly)
                 {
                     template.AppendLine("public partial class " + GetStringNoUnderScore(tableName, (int)TextCase.UcWords) + "Model");
@@ -308,7 +311,7 @@ namespace RebelCmsConsoleApplication
                             if (Field != null)
                             {
                                 // get the foreign key name
-                                template.AppendLine("\tpublic string? " + GetLabelForComboBoxGrid(tableName, Field) + " { get; init; } ");
+                                template.AppendLine("\tpublic string? " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " { get; init; } ");
                             }
                         }
                     }
@@ -333,12 +336,12 @@ namespace RebelCmsConsoleApplication
                                 if (Field != null)
                                 {
                                     // get the foreign key name
-                                    template.AppendLine("\tpublic string? " + GetLabelForComboBoxGrid(detailTableName, Field) + " { get; init; } ");
+                                    template.AppendLine("\tpublic string? " + UpperCaseFirst(GetLabelForComboBoxGrid(detailTableName, Field)) + " { get; init; } ");
                                 }
                             }
                         }
                     }
-                    template.AppendLine("}");
+                   
 
 
                 }
@@ -3995,7 +3998,8 @@ namespace RebelCmsConsoleApplication
                         {
                             if (!Field.Equals("tenantId"))
                             {
-                                template.AppendLine($"<td>@row.{UpperCaseFirst(Field.Replace("Id", "Key"))}</td>");
+                                // we using nearest varchar field . if not the same then .. 
+                                template.AppendLine($"<td>@row.{UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field))}</td>");
                             }
 
                         }
@@ -6405,13 +6409,15 @@ namespace RebelCmsConsoleApplication
 
                 return template.ToString();
             }
-            public string GenerateRepository(string module, string tableName)
+            public string GenerateRepository(string module, string tableName, bool readOnly = false)
             {
 
                 var primaryKey = GetPrimayKeyTableName(tableName);
 
                 var ucTableName = GetStringNoUnderScore(tableName, (int)TextCase.UcWords);
                 var lcTableName = GetStringNoUnderScore(tableName, (int)TextCase.LcWords);
+
+                var isDeleteFieldExisted = GetIfExistedIsDeleteField(tableName);
 
                 List<DescribeTableModel> describeTableModels = GetTableStructure(tableName);
                 List<string?> fieldNameList = describeTableModels.Select(x => x.FieldValue).ToList();
@@ -6539,14 +6545,17 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("using RebelCmsTemplate.Models." + module + ";");
                 template.AppendLine("using RebelCmsTemplate.Models.Shared;");
                 template.AppendLine("using RebelCmsTemplate.Util;");
+
                 template.AppendLine("namespace RebelCmsTemplate.Repository." + module + ";");
                 template.AppendLine("    public class " + ucTableName + "Repository");
                 template.AppendLine("    {");
                 template.AppendLine("        private readonly SharedUtil _sharedUtil;");
+
                 template.AppendLine("        public " + ucTableName + "Repository(IHttpContextAccessor httpContextAccessor)");
                 template.AppendLine("        {");
                 template.AppendLine("            _sharedUtil = new SharedUtil(httpContextAccessor);");
                 template.AppendLine("        }");
+
                 template.AppendLine("        public int Create(" + ucTableName + "Model " + lcTableName + "Model)");
                 template.AppendLine("        {");
                 template.AppendLine("            var lastInsertKey = 0;");
@@ -6598,7 +6607,38 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                sql = @\"");
                 template.AppendLine("                SELECT      *");
                 template.AppendLine("                FROM        " + tableName + " ");
-                template.AppendLine("                WHERE       isDelete !=1");
+                foreach (DescribeTableModel describeTableModel in describeTableModels)
+                {
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
+                    {
+                        if (GetNumberDataType().Any(x => Type.Contains(x)))
+                        {
+                            if (Key.Equals("MUL"))
+                            {
+                                template.AppendLine("\t JOIN " + GetForeignKeyTableName(tableName, Field) + " ");
+                                template.AppendLine("\t USING(" + Field + ")");
+                            }
+                        }
+                    }
+                }
+                if (isDeleteFieldExisted)
+                {
+                    template.AppendLine("                WHERE       isDelete !=1");
+                }else
+                {
+                    template.AppendLine(" WHERE 1 ");
+                }
                 template.AppendLine("                ORDER BY    " + primaryKey + " DESC \";");
                 template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
                 template.AppendLine("                using (var reader = mySqlCommand.ExecuteReader())");
@@ -6625,6 +6665,10 @@ namespace RebelCmsConsoleApplication
                     {
                         if (Key.Equals("PRI") || Key.Equals("MUL"))
                         {
+                            if (readOnly && Key.Equals("MUL"))
+                            {
+                                template.AppendLine(" " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " = reader[\"" + LowerCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + "\"].ToString(),");
+                            }
                             template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
                         }
                         else
@@ -6654,11 +6698,11 @@ namespace RebelCmsConsoleApplication
                         }
                         else if (Type.ToString().Contains("time"))
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime((TimeSpan)reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
                         }
                         else if (Type.ToString().Contains("date"))
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
                         }
 
 
@@ -6726,8 +6770,14 @@ namespace RebelCmsConsoleApplication
                         }
                     }
                 }
-                // how many table join is related ? 
-                template.AppendLine($"\t WHERE   {tableName}.isDelete != 1");
+                // how many table join is related ?
+                if (isDeleteFieldExisted)
+                {
+                    template.AppendLine($"\t WHERE   {tableName}.isDelete != 1");
+                }else
+                {
+                    template.AppendLine("\t WHERE 1 ");
+                }
                 // we create a list which field  manually so end user can choose we give em all filter 
                 StringBuilder templateSearch = new();
                 foreach (DescribeTableModel describeTableModel in describeTableModels)
@@ -6819,7 +6869,15 @@ namespace RebelCmsConsoleApplication
                     {
                         if (Key.Equals("PRI") || Key.Equals("MUL"))
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                            if (readOnly && Key.Equals("MUL"))
+                            {
+                                if (readOnly && Key.Equals("MUL"))
+                                {
+                                    template.AppendLine(" " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " = reader[\"" + LowerCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + "\"].ToString(),");
+                                }
+
+                                template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                            }
                         }
                         else
                         {
@@ -6848,11 +6906,11 @@ namespace RebelCmsConsoleApplication
                         }
                         else if (Type.ToString().Contains("time"))
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime((TimeSpan)reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
                         }
                         else if (Type.ToString().Contains("date"))
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
                         }
 
                     }
@@ -6922,8 +6980,15 @@ namespace RebelCmsConsoleApplication
                         }
                     }
                 }
-                // how many table join is related ? 
-                template.AppendLine($"                WHERE   {tableName}.isDelete != 1");
+                // how many table join is related ?
+                if (isDeleteFieldExisted)
+                {
+                    template.AppendLine($"                WHERE   {tableName}.isDelete != 1");
+                }
+                else
+                {
+                    template.AppendLine(" WHERE 1");
+                }
                 template.AppendLine("                AND   " + tableName + "." + primaryKey + "    =   @" + primaryKey + " LIMIT 1\";");
                 template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
                 template.AppendLine("                parameterModels = new List<ParameterModel>");
@@ -6995,11 +7060,11 @@ namespace RebelCmsConsoleApplication
                         }
                         else if (Type.ToString().Contains("time"))
                         {
-                            template.AppendLine(UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime((TimeSpan)reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine(UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
                         }
                         else if (Type.ToString().Contains("date"))
                         {
-                            template.AppendLine(UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine(UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
                         }
 
                     }
@@ -7034,9 +7099,33 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("            using var workbook = new XLWorkbook();");
                 template.AppendLine("            var worksheet = workbook.Worksheets.Add(\"Administrator > " + ucTableName + " \");");
                 // loop here
-                for (int i = 0; i < fieldNameList.Count; i++)
+
+                int dd = 0;
+                foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
-                    template.AppendLine("            worksheet.Cell(1, " + (i + 1) + ").Value = \"" + fieldNameList[i] + "\";");
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+                    if (!Key.Equals("PRI"))
+                    {
+                        if (!Field.Equals("tenantId"))
+                        {
+                            if (!Field.Equals("isDelete"))
+                            {
+                                template.AppendLine("            worksheet.Cell(1, " + (dd + 1) + ").Value = \"" + SplitToSpaceLabel(Field.Replace("Id", "").Replace(tableName, "")) + "\";");
+                                dd++;
+                            }
+                        }
+                    }
+       
+                   
                 }
                 // loop end
 
@@ -7061,9 +7150,41 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                    {");
                 template.AppendLine("                        var currentRow = counter++;");
                 // loop here
-                for (int i = 0; i < fieldNameList.Count; i++)
+                foreach (DescribeTableModel describeTableModel in describeTableModels)
                 {
-                    template.AppendLine("                        worksheet.Cell(currentRow, 2).Value = reader[\"" + fieldNameList[i] + "\"].ToString();");
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+                    if (Key.Equals("MUL"))
+                    {
+
+                        if (!Field.Equals("tenantId"))
+                        {
+                            if (!Field.Equals("isDelete"))
+                            {
+                                template.AppendLine("                        worksheet.Cell(currentRow, 2).Value = reader[\"" + GetLabelForComboBoxGrid(tableName, Field) + "\"].ToString();");
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!Field.Equals("isDelete"))
+                        {
+                            if (!Key.Equals("PRI"))
+                            {
+                                template.AppendLine("                        worksheet.Cell(currentRow, 2).Value = reader[\"" + Field + "\"].ToString();");
+                            }
+                        }
+                    }
+
                 }
                 // loop end here
                 template.AppendLine("                    }");
@@ -7081,7 +7202,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("        }");
                 template.AppendLine("        public void Update(" + ucTableName + "Model " + lcTableName + "Model)");
                 template.AppendLine("        {");
-
+                
                 template.AppendLine("            string sql = string.Empty;");
                 template.AppendLine("            List<ParameterModel> parameterModels = new ();");
                 template.AppendLine("            using MySqlConnection connection = SharedUtil.GetConnection();");
@@ -7154,9 +7275,17 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                connection.Open();");
                 template.AppendLine("                MySqlTransaction mySqlTransaction = connection.BeginTransaction();");
                 // we do soft delete for easy long term audit
+                // it possible some fela using this code and don't have isDelete field . so need to check if existed isDelete if non so hard delete instead of soft delete 
                 template.AppendLine("                sql = @\"");
-                template.AppendLine("                UPDATE  " + tableName + " ");
-                template.AppendLine("                SET     isDelete    =   1");
+                if (isDeleteFieldExisted)
+                {
+                    template.AppendLine("                UPDATE  " + tableName + " ");
+                    template.AppendLine("                SET     isDelete    =   1");
+                }
+                else
+                {
+                    template.AppendLine("                DELETE " + tableName + " ");
+                }
                 template.AppendLine("                WHERE   " + primaryKey + "    =   @" + primaryKey + "\";");
                 template.AppendLine("                MySqlCommand mySqlCommand = new(sql, connection);");
                 template.AppendLine("                parameterModels = new List<ParameterModel>");
@@ -7218,8 +7347,11 @@ namespace RebelCmsConsoleApplication
 
                         if (GetStringDataType().Any(x => Type.Contains(x)))
                         {
-                            name = SplitToSpaceLabel(Field);
-                            break;
+                            if (Int32.Parse(Regex.Match(Type, @"\d+").Value) > 10)
+                            {
+                                name = SplitToSpaceLabel(Field);
+                                break;
+                            }
                         }
                     }
                 }
@@ -7248,13 +7380,40 @@ namespace RebelCmsConsoleApplication
 
                         if (GetStringDataType().Any(x => Type.Contains(x)))
                         {
-                            name = Field;
-                            break;
+                            if (Int32.Parse(Regex.Match(Type, @"\d+").Value) > 10)
+                            {
+                                name = Field;
+                                break;
+                            }
                         }
                     }
                 }
 
                 return name;
+            }
+            public bool GetIfExistedIsDeleteField(string tableName)
+            {
+                bool check = false;
+                var structureModel = GetTableStructure(tableName);
+                foreach (DescribeTableModel describeTableModel in structureModel)
+                {
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+                    if (Field.Equals("isDelete"))
+                    {
+                        check = true;
+                        break;
+                    }
+                }
+                return check;
             }
             public string? GetPrimayKeyTableName(string tableName)
             {

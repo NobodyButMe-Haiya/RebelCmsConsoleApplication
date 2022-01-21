@@ -144,7 +144,7 @@ else
             File.Delete(fileNameMasterModel);
 
         using FileStream fileStreamMasterModel = File.Create(path + "/" + fileNameMasterModel);
-        fileStreamMasterModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,tableName)));
+        fileStreamMasterModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,tableName,true)));
 
         if (File.Exists(fileNameDetailModel))
             File.Delete(fileNameDetailModel);
@@ -158,7 +158,7 @@ else
             File.Delete(fileNameMasterRepository);
 
         using FileStream fileStreamMasterRepository = File.Create(path + "/" + fileNameMasterRepository);
-        fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName)));
+        fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName,true)));
 
         if (File.Exists(fileNameDetailRepository))
             File.Delete(fileNameDetailRepository);
