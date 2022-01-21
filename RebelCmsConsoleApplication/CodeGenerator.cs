@@ -6634,8 +6634,9 @@ namespace RebelCmsConsoleApplication
                 }
                 if (isDeleteFieldExisted)
                 {
-                    template.AppendLine("                WHERE       isDelete !=1");
-                }else
+                    template.AppendLine($"\t WHERE   {tableName}.isDelete != 1");
+                }
+                else
                 {
                     template.AppendLine(" WHERE 1 ");
                 }
@@ -6660,60 +6661,64 @@ namespace RebelCmsConsoleApplication
                     if (describeTableModel.TypeValue != null)
                         Type = describeTableModel.TypeValue;
 
-
-                    if (GetNumberDataType().Any(x => Type.Contains(x)))
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-                        if (Key.Equals("PRI") || Key.Equals("MUL"))
+
+                        if (GetNumberDataType().Any(x => Type.Contains(x)))
                         {
-                            if (readOnly && Key.Equals("MUL"))
+                            if (Key.Equals("PRI") || Key.Equals("MUL"))
                             {
-                                template.AppendLine(" " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " = reader[\"" + LowerCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + "\"].ToString(),");
+                                if (readOnly && Key.Equals("MUL"))
+                                {
+                                    template.AppendLine(" " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " = reader[\"" + LowerCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + "\"].ToString(),");
+                                }
+                                template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
                             }
-                            template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                            else
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                        }
+                        else if (GetDoubleDataType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                        }
+                        else if (Type.Contains("decimal"))
+                        {
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+
+                        }
+                        else if (GetDateDataType().Any(x => Type.Contains(x)))
+                        {
+
+                            if (Type.ToString().Contains("datetime"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                            else if (Type.ToString().Contains("year"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                            else if (Type.ToString().Contains("time"))
+                            {
+
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = (reader[\"" + LowerCaseFirst(Field) + "\"] != DBNull.Value) ?CustomDateTimeConvert.ConvertToTime((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]): null,");
+                            }
+                            else if (Type.ToString().Contains("date"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = (reader[\"" + LowerCaseFirst(Field) + "\"] != DBNull.Value) ?CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]): null,");
+                            }
+
+
+                        }
+                        else if (GetBlobType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
                         }
                         else
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
                         }
-                    }
-                    else if (GetDoubleDataType().Any(x => Type.Contains(x)))
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                    }
-                    else if (Type.Contains("decimal"))
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-
-                    }
-                    else if (GetDateDataType().Any(x => Type.Contains(x)))
-                    {
-
-                        if (Type.ToString().Contains("datetime"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                        }
-                        else if (Type.ToString().Contains("year"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                        }
-                        else if (Type.ToString().Contains("time"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
-                        }
-                        else if (Type.ToString().Contains("date"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
-                        }
-
-
-                    }
-                    else if (GetBlobType().Any(x => Type.Contains(x)))
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
-                    }
-                    else
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
                     }
                 }
                 template.AppendLine("});");
@@ -6864,63 +6869,66 @@ namespace RebelCmsConsoleApplication
                     if (describeTableModel.TypeValue != null)
                         Type = describeTableModel.TypeValue;
 
-
-                    if (GetNumberDataType().Any(x => Type.Contains(x)))
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-                        if (Key.Equals("PRI") || Key.Equals("MUL"))
+                        if (GetNumberDataType().Any(x => Type.Contains(x)))
                         {
-                            if (readOnly && Key.Equals("MUL"))
+                            if (Key.Equals("PRI") || Key.Equals("MUL"))
                             {
                                 if (readOnly && Key.Equals("MUL"))
                                 {
-                                    template.AppendLine(" " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " = reader[\"" + LowerCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + "\"].ToString(),");
-                                }
+                                    if (readOnly && Key.Equals("MUL"))
+                                    {
+                                        template.AppendLine(" " + UpperCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + " = reader[\"" + LowerCaseFirst(GetLabelForComboBoxGrid(tableName, Field)) + "\"].ToString(),");
+                                    }
 
-                                template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                                    template.AppendLine("                            " + UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                                }
                             }
+                            else
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                        }
+                        else if (GetDoubleDataType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                        }
+                        else if (Type.Contains("decimal"))
+                        {
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+
+                        }
+                        else if (GetDateDataType().Any(x => Type.Contains(x)))
+                        {
+                            // year allready as int 
+                            if (Type.ToString().Contains("datetime"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                            else if (Type.ToString().Contains("year"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                            else if (Type.ToString().Contains("time"))
+                            {
+
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = (reader[\"" + LowerCaseFirst(Field) + "\"] != DBNull.Value) ?CustomDateTimeConvert.ConvertToTime((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]): null,");
+                            }
+                            else if (Type.ToString().Contains("date"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = (reader[\"" + LowerCaseFirst(Field) + "\"] != DBNull.Value) ?CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]): null,");
+                            }
+
+                        }
+                        else if (GetBlobType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
                         }
                         else
                         {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
                         }
-                    }
-                    else if (GetDoubleDataType().Any(x => Type.Contains(x)))
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                    }
-                    else if (Type.Contains("decimal"))
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-
-                    }
-                    else if (GetDateDataType().Any(x => Type.Contains(x)))
-                    {
-                        // year allready as int 
-                        if (Type.ToString().Contains("datetime"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                        }
-                        else if (Type.ToString().Contains("year"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                        }
-                        else if (Type.ToString().Contains("time"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
-                        }
-                        else if (Type.ToString().Contains("date"))
-                        {
-                            template.AppendLine("                            " + UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
-                        }
-
-                    }
-                    else if (GetBlobType().Any(x => Type.Contains(x)))
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
-                    }
-                    else
-                    {
-                        template.AppendLine("                            " + UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
                     }
 
                 }
@@ -7026,55 +7034,58 @@ namespace RebelCmsConsoleApplication
                     if (describeTableModel.TypeValue != null)
                         Type = describeTableModel.TypeValue;
 
-
-                    if (GetNumberDataType().Any(x => Type.Contains(x)))
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-                        if (Key.Equals("PRI") || Key.Equals("MUL"))
+                        if (GetNumberDataType().Any(x => Type.Contains(x)))
                         {
-                            template.AppendLine(UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                            if (Key.Equals("PRI") || Key.Equals("MUL"))
+                            {
+                                template.AppendLine(UpperCaseFirst(Field.Replace("Id", "Key") + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field)) + "\"]),");
+                            }
+                            else
+                            {
+                                template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                        }
+                        else if (GetDoubleDataType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                        }
+                        else if (Type.Contains("decimal"))
+                        {
+                            template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+
+                        }
+                        else if (GetDateDataType().Any(x => Type.Contains(x)))
+                        {
+                            // year allready as int 
+                            if (Type.ToString().Contains("datetime"))
+                            {
+                                template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                            else if (Type.ToString().Contains("year"))
+                            {
+                                template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            }
+                            else if (Type.ToString().Contains("time"))
+                            {
+
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = (reader[\"" + LowerCaseFirst(Field) + "\"] != DBNull.Value) ?CustomDateTimeConvert.ConvertToTime((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]): null,");
+                            }
+                            else if (Type.ToString().Contains("date"))
+                            {
+                                template.AppendLine("                            " + UpperCaseFirst(Field) + " = (reader[\"" + LowerCaseFirst(Field) + "\"] != DBNull.Value) ?CustomDateTimeConvert.ConvertToDate((DateTime)reader[\"" + LowerCaseFirst(Field) + "\"]): null,");
+                            }
+
+                        }
+                        else if (GetBlobType().Any(x => Type.Contains(x)))
+                        {
+                            template.AppendLine(UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
                         }
                         else
                         {
-                            template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
+                            template.AppendLine(UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
                         }
-                    }
-                    else if (GetDoubleDataType().Any(x => Type.Contains(x)))
-                    {
-                        template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToDouble(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                    }
-                    else if (Type.Contains("decimal"))
-                    {
-                        template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToDecimal(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-
-                    }
-                    else if (GetDateDataType().Any(x => Type.Contains(x)))
-                    {
-                        // year allready as int 
-                        if (Type.ToString().Contains("datetime"))
-                        {
-                            template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToDateTime(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                        }
-                        else if (Type.ToString().Contains("year"))
-                        {
-                            template.AppendLine(UpperCaseFirst(Field) + " = Convert.ToInt32(reader[\"" + LowerCaseFirst(Field) + "\"]),");
-                        }
-                        else if (Type.ToString().Contains("time"))
-                        {
-                            template.AppendLine(UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToTime(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
-                        }
-                        else if (Type.ToString().Contains("date"))
-                        {
-                            template.AppendLine(UpperCaseFirst(Field) + " = CustomDateTimeConvert.ConvertToDate(reader[\"" + LowerCaseFirst(Field) + "\"].ToString()),");
-                        }
-
-                    }
-                    else if (GetBlobType().Any(x => Type.Contains(x)))
-                    {
-                        template.AppendLine(UpperCaseFirst(Field) + " = (byte[])reader[\"" + LowerCaseFirst(Field) + "\"],");
-                    }
-                    else
-                    {
-                        template.AppendLine(UpperCaseFirst(Field) + " = reader[\"" + LowerCaseFirst(Field) + "\"].ToString(),");
                     }
 
                 }
