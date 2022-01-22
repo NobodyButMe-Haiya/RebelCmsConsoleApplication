@@ -7,7 +7,7 @@ Console.WriteLine("Please try using dotnet run module tablename ");
 
 string module = string.Empty;
 string tableName = string.Empty;
-string detailTableName = string.Empty;
+string tableNameDetail = string.Empty;
 
 var count = Environment.GetCommandLineArgs().Length;
 
@@ -29,7 +29,7 @@ foreach(var x in Environment.GetCommandLineArgs())
             break;
 
         case 3:
-            detailTableName = Environment.GetCommandLineArgs()[3];
+            tableNameDetail = Environment.GetCommandLineArgs()[3];
 
             break;
 
@@ -52,15 +52,15 @@ if (!string.IsNullOrEmpty(tableName))
 {
     Console.WriteLine("You choose this table  : " + tableName);
 }
-if (!string.IsNullOrEmpty(detailTableName))
+if (!string.IsNullOrEmpty(tableNameDetail))
 {
-    Console.WriteLine("You choose this detail table  : " + detailTableName);
+    Console.WriteLine("You choose this detail table  : " + tableNameDetail);
 }
 
 CodeGenerator codeGenerator = new(ConfigurationManager.ConnectionStrings["ApplicationServices"].ConnectionString);
 
 var path = "/Users/user/Projects/code/";
-if (string.IsNullOrEmpty(detailTableName))
+if (string.IsNullOrEmpty(tableNameDetail))
 {
     var fileNameController = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Controller.cs";
     var fileNameModel = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Model.cs";
@@ -118,9 +118,9 @@ else
     var fileNameMasterModel = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Model.cs";
     var fileNameMasterRepository = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Repository.cs";
 
-    var fileNameDetailController = CodeGenerator.GetStringNoUnderScore(detailTableName, 1) + "Controller.cs";
-    var fileNameDetailModel = CodeGenerator.GetStringNoUnderScore(detailTableName, 1) + "Model.cs";
-    var fileNameDetailRepository = CodeGenerator.GetStringNoUnderScore(detailTableName, 1) + "Repository.cs";
+    var fileNameDetailController = CodeGenerator.GetStringNoUnderScore(tableNameDetail, 1) + "Controller.cs";
+    var fileNameDetailModel = CodeGenerator.GetStringNoUnderScore(tableNameDetail, 1) + "Model.cs";
+    var fileNameDetailRepository = CodeGenerator.GetStringNoUnderScore(tableNameDetail, 1) + "Repository.cs";
 
     var fileNameMasterDetailPages = CodeGenerator.GetStringNoUnderScore(tableName, 1) + ".cshtml";
     try
@@ -130,13 +130,13 @@ else
             File.Delete(fileNameMasterController);
 
         using FileStream fileStreamMasterController = File.Create(path + "/" + fileNameMasterController);
-        fileStreamMasterController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName)));
+        fileStreamMasterController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName,tableNameDetail)));
 
         if (File.Exists(fileNameDetailController))
             File.Delete(fileNameDetailController);
 
         using FileStream fileStreamDetailController = File.Create(path + "/" + fileNameDetailController);
-        fileStreamDetailController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, detailTableName)));
+        fileStreamDetailController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableNameDetail)));
         // end controller
 
         // start model 
@@ -150,7 +150,7 @@ else
             File.Delete(fileNameDetailModel);
 
         using FileStream fileStreamDetailModel = File.Create(path + "/" + fileNameDetailModel);
-        fileStreamDetailModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,detailTableName)));
+        fileStreamDetailModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,tableNameDetail)));
         // end model
 
         // start repository
@@ -158,13 +158,13 @@ else
             File.Delete(fileNameMasterRepository);
 
         using FileStream fileStreamMasterRepository = File.Create(path + "/" + fileNameMasterRepository);
-        fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName,true)));
+        fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName,tableNameDetail,true)));
 
         if (File.Exists(fileNameDetailRepository))
             File.Delete(fileNameDetailRepository);
 
         using FileStream fileStreamDetailRepository = File.Create(path + "/" + fileNameDetailRepository);
-        fileStreamDetailRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,detailTableName)));
+        fileStreamDetailRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableNameDetail)));
 
         // end detail repository
 
@@ -173,7 +173,7 @@ else
             File.Delete(fileNameMasterDetailPages);
 
         using FileStream fileStreamPages = File.Create(path + "/" + fileNameMasterDetailPages);
-        fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterAndDetail(module,tableName,detailTableName)));
+        fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterAndDetail(module,tableName,tableNameDetail)));
         // thinking what if the person just want to key in only ?
         // so we need optional form only . later
         Console.WriteLine("Check your master detail code");
