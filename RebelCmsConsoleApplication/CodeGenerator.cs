@@ -4612,7 +4612,7 @@ namespace RebelCmsConsoleApplication
 
                             oneLineTemplateFieldDetail.Append(Field.Replace("Id", "Key") + ",");
 
-                            if (!Field.Equals(primaryKeyDetail) )
+                            if (!Field.Equals(primaryKeyDetail))
                             {
                                 createTemplateFieldDetail.Append(Field.Replace("Id", "Key") + ".val(),");
                             }
@@ -5379,9 +5379,10 @@ namespace RebelCmsConsoleApplication
                     {
                         if (name.Contains("Id"))
                         {
-                            if (!name.Equals(primaryKey) )
+                            if (!name.Equals(primaryKey))
                             {
-                                if (!name.Equals(primaryKeyDetail)) {
+                                if (!name.Equals(primaryKeyDetail))
+                                {
                                     template.AppendLine($"\t{name.Replace("Id", "Key")}.val('');");
                                 }
                             }
@@ -6195,7 +6196,8 @@ namespace RebelCmsConsoleApplication
                 }
 
                 // update record detail
-                template.AppendLine("        function updateDetailRecord(" + lcTableDetailName + "Key) {");
+                if (primaryKeyDetail != null)
+                    template.AppendLine("        function updateDetailRecord(" + primaryKeyDetail.Replace("Id", "Key") + ") {");
                 template.AppendLine("         $.ajax({");
                 template.AppendLine("          type: 'POST',");
                 template.AppendLine("          url: \"api/" + module.ToLower() + "/" + lcTableDetailName + "\","); ;
@@ -6204,26 +6206,43 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("           mode: 'update',");
                 template.AppendLine("           leafCheckKey: @navigationModel.LeafCheckKey,");
                 // loop here
-                template.AppendLine("           " + lcTableName + "Key: " + lcTableName + "Key,");
+                if (primaryKeyDetail != null)
+                    template.AppendLine("           " + primaryKeyDetail.Replace("Id", "Key") + ": " + primaryKeyDetail.Replace("Id", "Key") + ",");
                 // loop not primary
-                foreach (var fieldName in fieldNameDetailList)
+                foreach (DescribeTableModel describeTableModel in describeTableDetailModels
+               )
                 {
-                    var name = string.Empty;
+                    string Key = string.Empty;
+                    string Field = string.Empty;
+                    string Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
 
-                    if (fieldName != null)
-                        name = fieldName;
-
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-
-                        if (name.Contains("Id"))
+                        if (Key.Equals("PRI") || Key.Equals("MUL"))
                         {
-                            if (name != lcTableName + "Id")
-                                template.AppendLine($"           {name.Replace("Id", "Key")}: $(\"#{name.Replace("Id", "Key")}-\" + {lcTableDetailName}Key).val(),");
+                            if (Key.Equals("MUL"))
+                            {
+                                if (!Field.Equals(primaryKey))
+                                {
+                                    if (primaryKeyDetail != null)
+                                        template.AppendLine($"           {Field.Replace("Id", "Key")}: $(\"#{Field.Replace("Id", "Key")}-\" + {primaryKeyDetail.Replace("Id", "Key")}).val(),");
+                                }
+                                else
+                                {
+                                    template.AppendLine("           " + primaryKey.Replace("Id", "Key") + ": $(\"#" + primaryKey.Replace("Id", "Key") + "\").val(),");
+                                }
+                            }
                         }
                         else
                         {
-                            template.AppendLine($"           {name}: $(\"#{name}-\" + {lcTableDetailName}Key).val(),");
+                            if (primaryKeyDetail != null)
+                                template.AppendLine($"           {Field}: $(\"#{Field}-\" + {primaryKeyDetail.Replace("Id", "Key")}).val(),");
                         }
                     }
                 }
@@ -7426,7 +7445,7 @@ namespace RebelCmsConsoleApplication
                     }
                     if (isDeleteFieldExisted)
                     {
-                        template.AppendLine($"\t WHERE   {tableName}.isDelete != 1");
+                        template.AppendLine($"\t WHERE   {tableName}.isDelete != 1 AND {tableNameDetail} != 1");
                     }
                     else
                     {
