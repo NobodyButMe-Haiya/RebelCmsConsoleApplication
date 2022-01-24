@@ -3,19 +3,19 @@ using System.Configuration;
 using System.Text;
 using RebelCmsConsoleApplication.RebelCmsGenerator;
 
-Console.WriteLine("Please try using dotnet run module tablename ");
+Console.WriteLine("Please try using dotnet run module table name ");
 
-string module = string.Empty;
-string tableName = string.Empty;
-string tableNameDetail = string.Empty;
+var module = string.Empty;
+var tableName = string.Empty;
+var tableNameDetail = string.Empty;
 
 var count = Environment.GetCommandLineArgs().Length;
 
-string appsDll = Environment.GetCommandLineArgs()[0];
+var appsDll = Environment.GetCommandLineArgs()[0];
 
 
 Console.WriteLine("Total arguments : [" + count + "]");
-int counter = 0;
+var counter = 0;
 foreach(var x in Environment.GetCommandLineArgs())
 {
     switch (counter)
@@ -59,7 +59,7 @@ if (!string.IsNullOrEmpty(tableNameDetail))
 
 CodeGenerator codeGenerator = new(ConfigurationManager.ConnectionStrings["ApplicationServices"].ConnectionString);
 
-var path = "/Users/user/Projects/code/";
+const string path = "/Users/user/Projects/code/";
 if (string.IsNullOrEmpty(tableNameDetail))
 {
     var fileNameController = CodeGenerator.GetStringNoUnderScore(tableName, 1) + "Controller.cs";
@@ -71,39 +71,31 @@ if (string.IsNullOrEmpty(tableNameDetail))
         if (File.Exists(fileNameController))
             File.Delete(fileNameController);
 
-        using FileStream fileStreamController = File.Create(path + "/" + fileNameController);
+        using var fileStreamController = File.Create(path + "/" + fileNameController);
         fileStreamController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module,tableName)));
 
         if (File.Exists(fileNameModel))
             File.Delete(fileNameModel);
 
-        using FileStream fileStreamModel = File.Create(path + "/" + fileNameModel);
+        using var fileStreamModel = File.Create(path + "/" + fileNameModel);
         fileStreamModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module, tableName)));
 
         if (File.Exists(fileNameRepository))
             File.Delete(fileNameRepository);
 
-        using FileStream fileStreamRepository = File.Create(path + "/" + fileNameRepository);
+        using var fileStreamRepository = File.Create(path + "/" + fileNameRepository);
         fileStreamRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module, tableName)));
 
         if (File.Exists(fileNamePages))
             File.Delete(fileNamePages);
 
 
-        using FileStream fileStreamPages = File.Create(path + "/" + fileNamePages);
-        // there is issue if the field over  5? is not suitabler soooo  we check first
+        using var fileStreamPages = File.Create(path + "/" + fileNamePages);
+        // there is issue if the field over  5? 
         var data = codeGenerator.GetTableStructure(tableName);
-        if (data.Count < 6)
-        {
-            fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GeneratePages(module, tableName)));
-        }
-        else
-        {
-
-            fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GeneratePagesFormAndGrid(module, tableName)));
-        }
-
-
+        fileStreamPages.Write(data.Count < 6
+            ? Encoding.UTF8.GetBytes(codeGenerator.GeneratePages(module, tableName))
+            : Encoding.UTF8.GetBytes(codeGenerator.GeneratePagesFormAndGrid(module, tableName)));
     }
     catch (Exception ex)
     {
@@ -129,13 +121,13 @@ else
         if (File.Exists(fileNameMasterController))
             File.Delete(fileNameMasterController);
 
-        using FileStream fileStreamMasterController = File.Create(path + "/" + fileNameMasterController);
+        using var fileStreamMasterController = File.Create(path + "/" + fileNameMasterController);
         fileStreamMasterController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName,tableNameDetail)));
 
         if (File.Exists(fileNameDetailController))
             File.Delete(fileNameDetailController);
 
-        using FileStream fileStreamDetailController = File.Create(path + "/" + fileNameDetailController);
+        using var fileStreamDetailController = File.Create(path + "/" + fileNameDetailController);
         fileStreamDetailController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableNameDetail)));
         // end controller
 
@@ -143,13 +135,13 @@ else
         if (File.Exists(fileNameMasterModel))
             File.Delete(fileNameMasterModel);
 
-        using FileStream fileStreamMasterModel = File.Create(path + "/" + fileNameMasterModel);
+        using var fileStreamMasterModel = File.Create(path + "/" + fileNameMasterModel);
         fileStreamMasterModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,tableName,true)));
 
         if (File.Exists(fileNameDetailModel))
             File.Delete(fileNameDetailModel);
 
-        using FileStream fileStreamDetailModel = File.Create(path + "/" + fileNameDetailModel);
+        using var fileStreamDetailModel = File.Create(path + "/" + fileNameDetailModel);
         fileStreamDetailModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module,tableNameDetail)));
         // end model
 
@@ -157,13 +149,13 @@ else
         if (File.Exists(fileNameMasterRepository))
             File.Delete(fileNameMasterRepository);
 
-        using FileStream fileStreamMasterRepository = File.Create(path + "/" + fileNameMasterRepository);
+        using var fileStreamMasterRepository = File.Create(path + "/" + fileNameMasterRepository);
         fileStreamMasterRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableName,tableNameDetail,true)));
 
         if (File.Exists(fileNameDetailRepository))
             File.Delete(fileNameDetailRepository);
 
-        using FileStream fileStreamDetailRepository = File.Create(path + "/" + fileNameDetailRepository);
+        using var fileStreamDetailRepository = File.Create(path + "/" + fileNameDetailRepository);
         fileStreamDetailRepository.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module,tableNameDetail)));
 
         // end detail repository
@@ -172,7 +164,7 @@ else
         if (File.Exists(fileNameMasterDetailPages))
             File.Delete(fileNameMasterDetailPages);
 
-        using FileStream fileStreamPages = File.Create(path + "/" + fileNameMasterDetailPages);
+        using var fileStreamPages = File.Create(path + "/" + fileNameMasterDetailPages);
         fileStreamPages.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateMasterAndDetail(module,tableName,tableNameDetail)));
         // thinking what if the person just want to key in only ?
         // so we need optional form only . later
