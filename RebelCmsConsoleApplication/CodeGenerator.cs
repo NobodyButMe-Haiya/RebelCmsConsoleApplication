@@ -380,8 +380,11 @@ namespace RebelCmsConsoleApplication
                     }
 
                     // a list master detail . the diff we don't loop and check .Separate query
-                    template.AppendLine($"\tpublic List<" + UpperCaseFirst(detailTableName) +
-                                        "Model>? Data { get; set; } ");
+                    if (!string.IsNullOrEmpty((detailTableName)))
+                    {
+                        template.AppendLine($"\tpublic List<" + UpperCaseFirst(detailTableName) +
+                                            "Model>? Data { get; set; } ");
+                    }
 
                     template.AppendLine("}");
                 }
@@ -700,14 +703,13 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("                    {");
                 template.AppendLine("                        try");
                 template.AppendLine("                        {");
-
+                template.AppendLine($"       data = {lcTableName}Repository.Search(search);");
                 template.AppendLine(
                     "                            code = ((int)ReturnCodeEnum.READ_SUCCESS).ToString();");
                 template.AppendLine("                            status = true;");
                 template.AppendLine("                        }");
                 template.AppendLine("                        catch (Exception ex)");
                 template.AppendLine("                        {");
-                template.AppendLine($"       data = {lcTableName}Repository.Search(search);");
                 template.AppendLine(
                     "                            code = sharedUtil.GetRoleId() == (int)AccessEnum.ADMINISTRATOR_ACCESS ? ex.Message : ((int)ReturnCodeEnum.SYSTEM_ERROR).ToString();");
                 template.AppendLine("                        }");
@@ -1627,21 +1629,33 @@ namespace RebelCmsConsoleApplication
                 // create record
                 template.AppendLine("        function createRecord() {");
                 // loop here 
-                foreach (var fieldName in fieldNameList)
+                foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+                    var Key = string.Empty;
+                    var Field = string.Empty;
+                    var Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
+
+
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-                        if (name.Contains("Id"))
+                        if (Key.Equals("PRI"))
+                        {
+                            // do nothing
+                        }
+                        else if (Key.Equals("MUL"))
                         {
                             template.AppendLine(
-                                $" const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
+                                $" const {Field.Replace("Id", "Key")} = $(\"#{Field.Replace("Id", "Key")}\");");
                         }
                         else
                         {
-                            template.AppendLine($" const {name} = $(\"#{name}\");");
+                            template.AppendLine($" const {Field} = $(\"#{Field}\");");
                         }
                     }
                 }
@@ -1655,22 +1669,33 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("            mode: 'create',");
                 template.AppendLine("            leafCheckKey: @navigationModel.LeafCheckKey,");
                 // loop here
-                foreach (var fieldName in fieldNameList)
+                foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
+                    var Key = string.Empty;
+                    var Field = string.Empty;
+                    var Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
 
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-                        if (name.Contains("Id"))
+                        if (Key.Equals("PRI"))
+                        {
+                            // do nothing
+                        }
+                        else if (Key.Equals("MUL"))
                         {
                             template.AppendLine(
-                                $"            {name.Replace("Id", "Key")}: {name.Replace("Id", "Key")}.val(),");
+                                $"            {Field.Replace("Id", "Key")}: {Field.Replace("Id", "Key")}.val(),");
                         }
                         else
                         {
-                            template.AppendLine($"            {name}: {name}.val(),");
+                            template.AppendLine($"            {Field}: {Field}.val(),");
                         }
                     }
                 }
@@ -1701,21 +1726,32 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("               confirmButtonText: 'Cool'");
                 template.AppendLine("             });");
                 // loop here
-                foreach (var fieldName in fieldNameList)
+                foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
-                        name = fieldName;
+                    var Key = string.Empty;
+                    var Field = string.Empty;
+                    var Type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
+                        Key = describeTableModel.KeyValue;
+                    if (describeTableModel.FieldValue != null)
+                        Field = describeTableModel.FieldValue;
+                    if (describeTableModel.TypeValue != null)
+                        Type = describeTableModel.TypeValue;
 
-                    if (!GetHiddenField().Any(x => name.Contains(x)))
+
+                    if (!GetHiddenField().Any(x => Field.Contains(x)))
                     {
-                        if (name.Contains("Id"))
+                        if (Key.Equals("PRI"))
                         {
-                            template.AppendLine($"\t{name.Replace("Id", "Key")}.val('');");
+                            // do nothing
+                        }
+                        else if (Key.Equals("MUL"))
+                        {
+                            template.AppendLine($"\t{Field.Replace("Id", "Key")}.val('');");
                         }
                         else
                         {
-                            template.AppendLine("\t" + name + ".val('');");
+                            template.AppendLine("\t" + Field + ".val('');");
                         }
                     }
                 }
@@ -2657,10 +2693,11 @@ namespace RebelCmsConsoleApplication
                         {
                             if (!Field.Equals("tenantId"))
                             {
-                                template.AppendLine("                                    <td>");
-                                var optionLabel = GetLabelOrPlaceHolderForComboBox(tableName, Field);
-                                template.AppendLine("@row." + UpperCaseFirst(optionLabel));
-                                template.AppendLine("                                    </td>");
+                                template.AppendLine("<td>");
+                                template.AppendLine("@row." +
+                                                    UpperCaseFirst(
+                                                        GetLabelForComboBoxForGridOrOption(tableName, Field)));
+                                template.AppendLine("</td>");
                             }
                         }
                         else if (GetNumberDataType().Any(x => Type.Contains(x)))
@@ -2743,7 +2780,12 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("        </div>");
                 template.AppendLine("    </section>");
                 template.AppendLine("    <script>");
-                // hmm seem missing here . validator  later 
+                // hmm seem missing here . validator  later
+
+                StringBuilder templateField = new();
+                StringBuilder oneLineTemplateField = new();
+                StringBuilder createTemplateField = new();
+                StringBuilder updateTemplateField = new();
                 foreach (var describeTableModel in describeTableModels)
                 {
                     var Key = string.Empty;
@@ -2765,10 +2807,7 @@ namespace RebelCmsConsoleApplication
                     }
                 }
 
-                StringBuilder templateField = new();
-                StringBuilder oneLineTemplateField = new();
-                StringBuilder createTemplateField = new();
-                StringBuilder updateTemplateField = new();
+                var uu = 0;
                 foreach (var fieldName in fieldNameList)
                 {
                     var name = string.Empty;
@@ -2780,18 +2819,26 @@ namespace RebelCmsConsoleApplication
                         if (name.Contains("Id"))
                         {
                             templateField.Append("row." + name.Replace("Id", "Key") + ",");
-                            oneLineTemplateField.Append(name.Replace("Id", "Key") + ",");
+                            if (uu < 6)
+                            {
+                                oneLineTemplateField.Append(name.Replace("Id", "Key") + ",");
+                            }
+                            uu++;
                         }
                         else
                         {
                             templateField.Append("row." + name + ",");
-                            oneLineTemplateField.Append(name + ",");
+                            if (uu < 6)
+                            {
+                                oneLineTemplateField.Append(name + ",");
+                            }
                             createTemplateField.Append(name + ".val(),");
+                            uu++;
                         }
                     }
                 }
 
-                ;
+                
                 template.AppendLine("\tfunction resetForm() {");
                 foreach (var fieldName in fieldNameList)
                 {
@@ -2864,13 +2911,11 @@ namespace RebelCmsConsoleApplication
                         if (!Field.Equals("tenantId"))
                         {
                             template.AppendLine("\tlet " + Field.Replace("Id", "Key") + "Options = \"\";");
-                            template.AppendLine("\tlet i = 0;");
                             template.AppendLine("\t" + Field.Replace("Id", "") + "Models.map((row) => {");
-                            template.AppendLine("\t\ti++;");
                             template.AppendLine("\t\tconst selected = (parseInt(row." + Field.Replace("Id", "Key") +
                                                 ") === parseInt(" + Field.Replace("Id", "Key") +
                                                 ")) ? \"selected\" : \"\";");
-                            var optionLabel = GetLabelOrPlaceHolderForComboBox(tableName, Field);
+                            var optionLabel = GetLabelForComboBoxForGridOrOption(tableName, Field);
                             template.AppendLine("\t\t" + Field.Replace("Id", "Key") +
                                                 "Options += \"<option value='\" + row." + Field.Replace("Id", "Key") +
                                                 " + \"' \" + selected + \">\" + row." + UpperCaseFirst(optionLabel) +
@@ -2970,21 +3015,33 @@ namespace RebelCmsConsoleApplication
                 {
                     template.AppendLine("        function createRecord() {");
 
-                    foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                     {
-                        var name = string.Empty;
-                        if (fieldName != null)
-                            name = fieldName;
-                        if (!GetHiddenField().Any(x => name.Contains(x)))
+                        var Key = string.Empty;
+                        var Field = string.Empty;
+                        var Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            if (name.Contains("Id"))
+                            if (Key.Equals("PRI"))
+                            {
+                                // do nothing
+                            }
+                            else if (Key.Equals("MUL"))
                             {
                                 template.AppendLine(
-                                    $" const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
+                                    $" const {Field.Replace("Id", "Key")} = $(\"#{Field.Replace("Id", "Key")}\");");
                             }
                             else
                             {
-                                template.AppendLine($" const {name} = $(\"#{name}\");");
+                                template.AppendLine($" const {Field} = $(\"#{Field}\");");
                             }
                         }
                     }
@@ -3108,8 +3165,9 @@ namespace RebelCmsConsoleApplication
                     // flip update button enabled
                     // flip disabled button enabled
                     if (primaryKey != null)
-                        template.AppendLine("  $(\"" + LowerCaseFirst(primaryKey.Replace("Id", "Key")) +
+                        template.AppendLine("  $(\"#" + LowerCaseFirst(primaryKey.Replace("Id", "Key")) +
                                             "\").val(lastInsertKey);");
+
                     template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
                     template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
                     template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
@@ -3180,21 +3238,33 @@ namespace RebelCmsConsoleApplication
                 {
                     template.AppendLine("        function createRecord() {");
                     // loop here 
-                    foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                     {
-                        var name = string.Empty;
-                        if (fieldName != null)
-                            name = fieldName;
-                        if (!GetHiddenField().Any(x => name.Contains(x)))
+                        var Key = string.Empty;
+                        var Field = string.Empty;
+                        var Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            if (name.Contains("Id"))
+                            if (Key.Equals("PRI"))
+                            {
+                                // do nothing
+                            }
+                            else if (Key.Equals("MUL"))
                             {
                                 template.AppendLine(
-                                    $" const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
+                                    $" const {Field.Replace("Id", "Key")} = $(\"#{Field.Replace("Id", "Key")}\");");
                             }
                             else
                             {
-                                template.AppendLine($" const {name} = $(\"#{name}\");");
+                                template.AppendLine($" const {Field} = $(\"#{Field}\");");
                             }
                         }
                     }
@@ -3208,22 +3278,33 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("            mode: 'create',");
                     template.AppendLine("            leafCheckKey: @navigationModel.LeafCheckKey,");
                     // loop here
-                    foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                     {
-                        var name = string.Empty;
-                        if (fieldName != null)
-                            name = fieldName;
+                        var Key = string.Empty;
+                        var Field = string.Empty;
+                        var Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
 
-                        if (!GetHiddenField().Any(x => name.Contains(x)))
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            if (name.Contains("Id"))
+                            if (Key.Equals("PRI"))
                             {
-                                template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" +
-                                                    name.Replace("Id", "Key") + "\").val(),");
+                                // do nothing
+                            }
+                            else if (Key.Equals("MUL"))
+                            {
+                                template.AppendLine($"            {Field.Replace("Id", "Key")}: $(\"#" +
+                                                    Field.Replace("Id", "Key") + "\").val(),");
                             }
                             else
                             {
-                                template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
+                                template.AppendLine($"            {Field}: $(\"#" + Field + "\").val(),");
                             }
                         }
                     }
@@ -3252,8 +3333,8 @@ namespace RebelCmsConsoleApplication
                     // flip update button enabled
                     // flip disabled button enabled
                     if (primaryKey != null)
-                        template.AppendLine("  $(\"" + LowerCaseFirst(primaryKey.Replace("Id", "Key")) +
-                                            "Key\").val(lastInsertKey);");
+                        template.AppendLine("  $(\"#" + LowerCaseFirst(primaryKey.Replace("Id", "Key")) +
+                                            "\").val(lastInsertKey);");
                     template.AppendLine("            $(\"#createButton\").attr(\"disabled\",\"disabled\");");
                     template.AppendLine("            $(\"#updateButton\").removeAttr(\"disabled\",\"disabled\");");
                     template.AppendLine("            $(\"#deleteButton\").removeAttr(\"disabled\",\"disabled\");");
@@ -4433,12 +4514,8 @@ namespace RebelCmsConsoleApplication
                         }
                         else if (Key.Equals("MUL"))
                         {
-                            if (!Field.Equals("tenantId"))
-                            {
-                                // we using nearest varchar field . if not the same then .. 
-                                template.AppendLine(
-                                    $"<td>@row.{UpperCaseFirst(GetLabelForComboBoxForGridOrOption(tableName, Field))}</td>");
-                            }
+                            template.AppendLine(
+                                $"<td>@row.{UpperCaseFirst(GetLabelForComboBoxForGridOrOption(tableName, Field))}</td>");
                         }
                         else if (GetNumberDataType().Any(x => Type.Contains(x)))
                         {
@@ -5455,21 +5532,33 @@ namespace RebelCmsConsoleApplication
                 {
                     template.AppendLine("        function createRecord() {");
 
-                    foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                     {
-                        var name = string.Empty;
-                        if (fieldName != null)
-                            name = fieldName;
-                        if (!GetHiddenField().Any(x => name.Contains(x)))
+                        var Key = string.Empty;
+                        var Field = string.Empty;
+                        var Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            if (name.Contains("Id"))
+                            if (Key.Equals("PRI"))
+                            {
+                                // do nothing
+                            }
+                            else if (Key.Equals("MUL"))
                             {
                                 template.AppendLine(
-                                    $" const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
+                                    $" const {Field.Replace("Id", "Key")} = $(\"#{Field.Replace("Id", "Key")}\");");
                             }
                             else
                             {
-                                template.AppendLine($" const {name} = $(\"#{name}\");");
+                                template.AppendLine($" const {Field} = $(\"#{Field}\");");
                             }
                         }
                     }
@@ -5671,21 +5760,33 @@ namespace RebelCmsConsoleApplication
                 {
                     template.AppendLine("        function createRecord() {");
                     // loop here 
-                    foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                     {
-                        var name = string.Empty;
-                        if (fieldName != null)
-                            name = fieldName;
-                        if (!GetHiddenField().Any(x => name.Contains(x)))
+                        var Key = string.Empty;
+                        var Field = string.Empty;
+                        var Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
+
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            if (name.Contains("Id"))
+                            if (Key.Equals("PRI"))
+                            {
+                                // do nothing
+                            }
+                            else if (Key.Equals("MUL"))
                             {
                                 template.AppendLine(
-                                    $" const {name.Replace("Id", "Key")} = $(\"#{name.Replace("Id", "Key")}\");");
+                                    $" const {Field.Replace("Id", "Key")} = $(\"#{Field.Replace("Id", "Key")}\");");
                             }
                             else
                             {
-                                template.AppendLine($" const {name} = $(\"#{name}\");");
+                                template.AppendLine($" const {Field} = $(\"#{Field}\");");
                             }
                         }
                     }
@@ -5699,22 +5800,33 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("            mode: 'create',");
                     template.AppendLine("            leafCheckKey: @navigationModel.LeafCheckKey,");
                     // loop here
-                    foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                     {
-                        var name = string.Empty;
-                        if (fieldName != null)
-                            name = fieldName;
+                        var Key = string.Empty;
+                        var Field = string.Empty;
+                        var Type = string.Empty;
+                        if (describeTableModel.KeyValue != null)
+                            Key = describeTableModel.KeyValue;
+                        if (describeTableModel.FieldValue != null)
+                            Field = describeTableModel.FieldValue;
+                        if (describeTableModel.TypeValue != null)
+                            Type = describeTableModel.TypeValue;
 
-                        if (!GetHiddenField().Any(x => name.Contains(x)))
+
+                        if (!GetHiddenField().Any(x => Field.Contains(x)))
                         {
-                            if (name.Contains("Id"))
+                            if (Key.Equals("PRI"))
                             {
-                                template.AppendLine($"            {name.Replace("Id", "Key")}: $(\"#" +
-                                                    name.Replace("Id", "Key") + "\").val(),");
+                                // do nothing
+                            }
+                            else if (Key.Equals("MUL"))
+                            {
+                                template.AppendLine($"            {Field.Replace("Id", "Key")}: $(\"#" +
+                                                    Field.Replace("Id", "Key") + "\").val(),");
                             }
                             else
                             {
-                                template.AppendLine($"            {name}: $(\"#" + name + "\").val(),");
+                                template.AppendLine($"            {Field}: $(\"#" + Field + "\").val(),");
                             }
                         }
                     }
@@ -7939,8 +8051,6 @@ namespace RebelCmsConsoleApplication
                     "                _sharedUtil.SetQueryException(SharedUtil.GetSqlSessionValue(sql, parameterModels), ex);");
                 template.AppendLine("                throw new Exception(ex.Message);");
                 template.AppendLine("            }");
-
-         
 
 
                 // single with detail value-------------------------
