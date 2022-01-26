@@ -4,6 +4,8 @@ using System.Configuration;
 using System.Text;
 using RebelCmsConsoleApplication.RebelCmsGenerator;
 
+CodeGenerator codeGenerator = new(ConfigurationManager.ConnectionStrings["ApplicationServices"].ConnectionString);
+
 Console.WriteLine("Please try using dotnet run module table name ");
 
 var module = string.Empty;
@@ -17,7 +19,7 @@ var appsDll = Environment.GetCommandLineArgs()[0];
 
 Console.WriteLine("Total arguments : [" + count + "]");
 var counter = 0;
-foreach (var x in Environment.GetCommandLineArgs())
+foreach (var unused in Environment.GetCommandLineArgs())
 {
     switch (counter)
     {
@@ -63,7 +65,6 @@ if (!string.IsNullOrEmpty(tableNameDetail))
     Console.WriteLine("You choose this detail table  : " + tableNameDetail);
 }
 
-CodeGenerator codeGenerator = new(ConfigurationManager.ConnectionStrings["ApplicationServices"].ConnectionString);
 
 const string path = "/Users/user/Projects/code/";
 if (string.IsNullOrEmpty(tableNameDetail))
@@ -77,13 +78,17 @@ if (string.IsNullOrEmpty(tableNameDetail))
         var data = codeGenerator.GetTableStructure(tableName);
 
         if (File.Exists(fileNameController))
+        {
             File.Delete(fileNameController);
+        }
 
         using var fileStreamController = File.Create(path + "/" + fileNameController);
         fileStreamController.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName)));
 
         if (File.Exists(fileNameModel))
+        {
             File.Delete(fileNameModel);
+        }
 
         using var fileStreamModel = File.Create(path + "/" + fileNameModel);
         fileStreamModel.Write(Encoding.UTF8.GetBytes(data.Count < 6
@@ -91,7 +96,9 @@ if (string.IsNullOrEmpty(tableNameDetail))
             : codeGenerator.GenerateModel(module, tableName, true)));
 
         if (File.Exists(fileNameRepository))
+        {
             File.Delete(fileNameRepository);
+        }
 
         using var fileStreamRepository = File.Create(path + "/" + fileNameRepository);
         fileStreamRepository.Write(Encoding.UTF8.GetBytes(data.Count < 6
@@ -99,8 +106,9 @@ if (string.IsNullOrEmpty(tableNameDetail))
             : codeGenerator.GenerateRepository(module, tableName, "", true)));
 
         if (File.Exists(fileNamePages))
+        {
             File.Delete(fileNamePages);
-
+        }
 
         using var fileStreamPages = File.Create(path + "/" + fileNamePages);
         // there is issue if the field over  5? 
@@ -137,7 +145,9 @@ else
             Encoding.UTF8.GetBytes(codeGenerator.GenerateController(module, tableName, tableNameDetail)));
 
         if (File.Exists(fileNameDetailController))
+        {
             File.Delete(fileNameDetailController);
+        }
 
         using var fileStreamDetailController = File.Create(path + "/" + fileNameDetailController);
         fileStreamDetailController.Write(
@@ -146,13 +156,17 @@ else
 
         // start model 
         if (File.Exists(fileNameMasterModel))
+        {
             File.Delete(fileNameMasterModel);
+        }
 
         using var fileStreamMasterModel = File.Create(path + "/" + fileNameMasterModel);
         fileStreamMasterModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module, tableName, true)));
 
         if (File.Exists(fileNameDetailModel))
+        {
             File.Delete(fileNameDetailModel);
+        }
 
         using var fileStreamDetailModel = File.Create(path + "/" + fileNameDetailModel);
         fileStreamDetailModel.Write(Encoding.UTF8.GetBytes(codeGenerator.GenerateModel(module, tableNameDetail)));
@@ -160,14 +174,18 @@ else
 
         // start repository
         if (File.Exists(fileNameMasterRepository))
+        {
             File.Delete(fileNameMasterRepository);
+        }
 
         using var fileStreamMasterRepository = File.Create(path + "/" + fileNameMasterRepository);
         fileStreamMasterRepository.Write(
             Encoding.UTF8.GetBytes(codeGenerator.GenerateRepository(module, tableName, tableNameDetail, true)));
 
         if (File.Exists(fileNameDetailRepository))
+        {
             File.Delete(fileNameDetailRepository);
+        }
 
         using var fileStreamDetailRepository = File.Create(path + "/" + fileNameDetailRepository);
         fileStreamDetailRepository.Write(
@@ -177,7 +195,9 @@ else
 
         // start pages
         if (File.Exists(fileNameMasterDetailPages))
+        {
             File.Delete(fileNameMasterDetailPages);
+        }
 
         using var fileStreamPages = File.Create(path + "/" + fileNameMasterDetailPages);
         fileStreamPages.Write(
