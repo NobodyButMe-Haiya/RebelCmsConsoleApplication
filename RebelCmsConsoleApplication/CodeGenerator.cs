@@ -113,15 +113,6 @@ namespace RebelCmsConsoleApplication
 
                 return describeTableModels;
             }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="module"></param>
-            /// <param name="tableName"></param>
-            /// <param name="readOnly"></param>
-            /// <param name="detailTableName">Optional future .</param>
-            /// <returns></returns>
             public string GenerateModel(string module, string tableName, bool readOnly = false,
                 string detailTableName = "")
             {
@@ -2900,18 +2891,20 @@ namespace RebelCmsConsoleApplication
                     {
                         case "PRI":
                         case "MUL":
-                            templateField.Append("row." + field.Replace("Id", "Key") + ",");
-                            if (uu < 6)
+                            
+                            if (uu < gridMax)
                             {
+                                templateField.Append("row." + field.Replace("Id", "Key") + ",");
                                 oneLineTemplateField.Append(field.Replace("Id", "Key") + ",");
                             }
 
                             uu++;
                             break;
                         default:
-                            templateField.Append("row." + field + ",");
-                            if (uu < 6)
+                         
+                            if (uu < gridMax)
                             {
+                                templateField.Append("row." + field + ",");
                                 oneLineTemplateField.Append(field + ",");
                             }
 
@@ -2923,21 +2916,27 @@ namespace RebelCmsConsoleApplication
 
 
                 template.AppendLine("\tfunction resetForm() {");
-                foreach (var fieldName in fieldNameList)
+                foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
+                    var key = string.Empty;
+                    var field = string.Empty;
+                    if (describeTableModel.KeyValue != null)
                     {
-                        name = fieldName;
+                        key = describeTableModel.KeyValue;
                     }
 
-                    if (name.Contains("Id"))
+                    if (describeTableModel.FieldValue != null)
                     {
-                        template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
+                        field = describeTableModel.FieldValue;
                     }
-                    else
-                    {
-                        template.AppendLine("\t$(\"#" + name + "\").val('');");
+                    switch(key){
+                        case "PRI":
+                        case "MUL":
+                            template.AppendLine("\t$(\"#" + field.Replace("Id", "Key") + "\").val('');");
+                        break;
+                        default:
+                            template.AppendLine("\t$(\"#" + field + "\").val('');");
+                        break;
                     }
                 }
 
@@ -2948,21 +2947,27 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("        function resetRecord() {");
                 template.AppendLine("         readRecord();");
                 template.AppendLine("         $(\"#search\").val(\"\");");
-                foreach (var fieldName in fieldNameList)
+                foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
+                    var key = string.Empty;
+                    var field = string.Empty;
+                    if (describeTableModel.KeyValue != null)
                     {
-                        name = fieldName;
+                        key = describeTableModel.KeyValue;
                     }
 
-                    if (name.Contains("Id"))
+                    if (describeTableModel.FieldValue != null)
                     {
-                        template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
+                        field = describeTableModel.FieldValue;
                     }
-                    else
-                    {
-                        template.AppendLine("\t$(\"#" + name + "\").val('');");
+                    switch(key){
+                        case "PRI":
+                        case "MUL":
+                            template.AppendLine("\t$(\"#" + field.Replace("Id", "Key") + "\").val('');");
+                        break;
+                        default:
+                            template.AppendLine("\t$(\"#" + field + "\").val('');");
+                        break;
                     }
                 }
 
@@ -2977,37 +2982,8 @@ namespace RebelCmsConsoleApplication
                                     "'>It's lonely here</td></tr>\";");
                 template.AppendLine("        }");
 
-                // remember to one row template here as function name
-                // this only for view purpose only 
-                template.AppendLine("        function template(" + oneLineTemplateField.ToString().TrimEnd(',') +
+                              template.AppendLine("        function template(" + oneLineTemplateField.ToString().TrimEnd(',') +
                                     ") {");
-                foreach (var describeTableModel in describeTableModels)
-                {
-                    var key = string.Empty;
-                    var field = string.Empty;
-                    if (describeTableModel.KeyValue != null)
-                    {
-                        key = describeTableModel.KeyValue;
-                    }
-
-                    if (describeTableModel.FieldValue != null)
-                    {
-                        field = describeTableModel.FieldValue;
-                    }
-
-                    if (GetHiddenField().Any(x => field.Contains(x)) || !key.Equals("MUL")) continue;
-                    template.AppendLine("\tlet " + field.Replace("Id", "Key") + "Options = \"\";");
-                    template.AppendLine("\t" + field.Replace("Id", "") + "Models.map((row) => {");
-                    template.AppendLine("\t\tconst selected = (parseInt(row." + field.Replace("Id", "Key") +
-                                        ") === parseInt(" + field.Replace("Id", "Key") +
-                                        ")) ? \"selected\" : \"\";");
-                    var optionLabel = GetLabelForComboBoxForGridOrOption(tableName, field);
-                    template.AppendLine("\t\t" + field.Replace("Id", "Key") +
-                                        "Options += \"<option value='\" + row." + field.Replace("Id", "Key") +
-                                        " + \"' \" + selected + \">\" + row." + UpperCaseFirst(optionLabel) +
-                                        " +\"</option>\";");
-                    template.AppendLine("\t});");
-                }
 
                 template.AppendLine("            let template =  \"\" +");
                 template.AppendLine($"                \"<tr id='{lcTableName}-\" + {lcTableName}Key + \"'>\" +");
@@ -3040,13 +3016,15 @@ namespace RebelCmsConsoleApplication
                             {
                                 case "PRI":
                                     continue;
-                                case "MUL":
-                                    template.AppendLine("\"<td>\"+" + LowerCaseFirst(field) + "+\"</td>\" +");
 
+                                case "MUL":
+                                    template.AppendLine("\"<td>\"+" +
+                                                        LowerCaseFirst(
+                                                            GetLabelForComboBoxForGridOrOption(tableName, field)) +
+                                                        "+\"</td>\" +");
                                     break;
                                 default:
                                     template.AppendLine("\"<td>\"+" + LowerCaseFirst(field) + "+\"</td>\" +");
-
                                     break;
                             }
                         }
@@ -3090,16 +3068,16 @@ namespace RebelCmsConsoleApplication
                         m++;
                     }
                 }
-
-                template.AppendLine("                \"<td style='text-align: center'><div class='btn-group'>\" +");
+                     template.AppendLine("                \"<td style='text-align: center'><div class='btn-group'>\" +");
                 template.AppendLine(
-                    $"                \"<Button type='button' class='btn btn-warning' onclick='viewRecord(\" + {lcTableName}Key + \")'>\" +");
+                    $"                \"<Button type='button' class='btn btn-warning' onclick='viewRecord(\" + {primaryKey.Replace("Id","Key")} + \")'>\" +");
                 template.AppendLine("                \"<i class='fas fa-search'></i> View\" +");
                 template.AppendLine("                \"</Button>\" +");
                 template.AppendLine("                \"</div></td>\" +");
                 template.AppendLine("                \"</tr>\";");
                 template.AppendLine("               return template; ");
                 template.AppendLine("        }");
+         
                 // if there is upload will be using form-data instead 
                 if (imageUpload)
                 {
@@ -3349,39 +3327,7 @@ namespace RebelCmsConsoleApplication
                 {
                     template.AppendLine("        function createRecord() {");
                     // loop here 
-                    foreach (var describeTableModel in describeTableModels)
-                    {
-                        var key = string.Empty;
-                        var field = string.Empty;
-                        if (describeTableModel.KeyValue != null)
-                        {
-                            key = describeTableModel.KeyValue;
-                        }
-
-                        if (describeTableModel.FieldValue != null)
-                        {
-                            field = describeTableModel.FieldValue;
-                        }
-
-                        if (!GetHiddenField().Any(x => field.Contains(x)))
-                        {
-                            switch (key)
-                            {
-                                case "PRI":
-                                    continue;
-
-                                case "MUL":
-
-                                    template.AppendLine(
-                                        $" const {field.Replace("Id", "Key")} = $(\"#{field.Replace("Id", "Key")}\");");
-                                    break;
-                                default:
-                                    template.AppendLine($" const {field} = $(\"#{field}\");");
-
-                                    break;
-                            }
-                        }
-                    }
+                
 
                     // loop here
                     template.AppendLine("         $.ajax({");
@@ -3442,8 +3388,9 @@ namespace RebelCmsConsoleApplication
                     template.AppendLine("            let code = data.code;");
                     template.AppendLine("            if (status) {");
                     template.AppendLine("             const lastInsertKey = data.lastInsertKey;");
-                    template.AppendLine("             $(\"#tableBody\").prepend(template(lastInsertKey," +
-                                        createTemplateField.ToString().TrimEnd(',') + "));");
+                    
+                        template.AppendLine("  readRecord();");
+                
                     // put value in input hidden
                     // flip create button disabled
                     // flip update button enabled
@@ -3618,7 +3565,9 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("           console.log(\"always:complete\");    ");
                 template.AppendLine("          });");
                 template.AppendLine("        }");
+
                 // search record
+
                 template.AppendLine("        function searchRecord() {");
                 template.AppendLine("         $.ajax({");
                 template.AppendLine("          type: \"post\",");
@@ -3729,7 +3678,7 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("          async: false,");
                 template.AppendLine("          contentType: \"application/x-www-form-urlencoded\",");
                 template.AppendLine("          data: {");
-                template.AppendLine("           mode: \"singleWithDetail\",");
+                template.AppendLine("           mode: \"single\",");
                 template.AppendLine("           leafCheckKey: @navigationModel.LeafCheckKey,");
                 if (primaryKey != null)
                 {
@@ -5308,7 +5257,7 @@ namespace RebelCmsConsoleApplication
                 StringBuilder oneLineTemplateFieldDetail = new();
                 StringBuilder createTemplateFieldDetail = new();
                 //  StringBuilder updateTemplateFieldDetail = new();
-
+                int ww = 0; 
                 foreach (var describeTableModel in describeTableModels)
                 {
                     var key = string.Empty;
@@ -5331,23 +5280,32 @@ namespace RebelCmsConsoleApplication
                             case "MUL":
                                 if (key.Equals("MUL"))
                                 {
+                                    if(ww < gridMax){
                                     templateField.Append("row." +
                                                          LowerCaseFirst(
                                                              GetLabelForComboBoxForGridOrOption(tableName, field)) +
                                                          ",");
                                     oneLineTemplateField.Append(
                                         LowerCaseFirst(GetLabelForComboBoxForGridOrOption(tableName, field)) + ",");
+                                        ww++;
+                                    }
                                 }
                                 else
                                 {
+                                        if(ww < 6){
                                     templateField.Append("row." + field.Replace("Id", "Key") + ",");
                                     oneLineTemplateField.Append(field.Replace("Id", "Key") + ",");
+                                         ww++;
+                                        }
                                 }
 
                                 break;
                             default:
+                               if(ww < gridMax){
                                 templateField.Append("row." + field + ",");
                                 oneLineTemplateField.Append(field + ",");
+                                     ww++;
+                               }
                                 createTemplateField.Append(field + ".val(),");
                                 break;
                         }
@@ -5407,21 +5365,33 @@ namespace RebelCmsConsoleApplication
 
                 // reset form
                 template.AppendLine("\tfunction resetForm() {");
-                foreach (var fieldName in fieldNameList)
+                    foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
+                    var key = string.Empty;
+                    var field = string.Empty;
+                    var type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
                     {
-                        name = fieldName;
+                        key = describeTableModel.KeyValue;
                     }
 
-                    if (name.Contains("Id"))
+                    if (describeTableModel.FieldValue != null)
                     {
-                        template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
+                        field = describeTableModel.FieldValue;
                     }
-                    else
+
+                    if (describeTableModel.TypeValue != null)
                     {
-                        template.AppendLine("\t$(\"#" + name + "\").val('');");
+                        type = describeTableModel.TypeValue;
+                    }
+                    switch(key){
+                        case "PRI":
+                        case "MUL":
+                            template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
+                        break;
+                        default:
+                           template.AppendLine("\t$(\"#" + name + "\").val('');");
+                        break;
                     }
                 }
 
@@ -5434,21 +5404,34 @@ namespace RebelCmsConsoleApplication
                 template.AppendLine("\tfunction resetRecord() {");
                 template.AppendLine("\t\treadRecord();");
                 template.AppendLine("\t\t$(\"#search\").val(\"\");");
-                foreach (var fieldName in fieldNameList)
+                foreach (var describeTableModel in describeTableModels)
                 {
-                    var name = string.Empty;
-                    if (fieldName != null)
+                    var key = string.Empty;
+                    var field = string.Empty;
+                    var type = string.Empty;
+                    if (describeTableModel.KeyValue != null)
                     {
-                        name = fieldName;
+                        key = describeTableModel.KeyValue;
                     }
 
-                    if (name.Contains("Id"))
+                    if (describeTableModel.FieldValue != null)
                     {
-                        template.AppendLine("\t$(\"#" + name.Replace("Id", "Key") + "\").val('');");
+                        field = describeTableModel.FieldValue;
                     }
-                    else
+
+                    if (describeTableModel.TypeValue != null)
                     {
-                        template.AppendLine("\t$(\"#" + name + "\").val('');");
+                        type = describeTableModel.TypeValue;
+                    }
+                    switch(key){
+                        case "PRI":
+                        case "MUL":
+                            template.AppendLine("\t$(\"#" + field.Replace("Id", "Key") + "\").val('');");
+
+                        break;
+                        default:
+                            template.AppendLine("\t$(\"#" + field + "\").val('');");
+                        break;
                     }
                 }
 
